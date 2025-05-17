@@ -1,0 +1,72 @@
+"use client"
+
+import { useState } from "react"
+import { MobileHeader } from "@/components/mobile-header"
+import { MobileNavigation } from "@/components/mobile-navigation"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { PoberList } from "@/components/pober-list"
+import { BarChart3, Settings } from "lucide-react"
+import Link from "next/link"
+
+export default function ProfilePage() {
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false)
+
+  return (
+    <div className="flex flex-col w-full min-h-screen max-w-md mx-auto">
+      <MobileHeader title="MyPage" />
+
+      <div className="flex-1 p-3 pb-20">
+        <Card className="mb-4">
+          <CardContent className="pt-4 px-4 pb-4">
+            <div className="flex flex-col items-center">
+              <div className="relative">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src="/placeholder.svg?height=80&width=80" alt="프로필 이미지" />
+                  <AvatarFallback>사용자</AvatarFallback>
+                </Avatar>
+              </div>
+              <h2 className="mt-3 text-lg font-bold">사용자 이름</h2>
+              <p className="text-xs text-muted-foreground">user@example.com</p>
+
+              <div className="flex gap-2 mt-3">
+                <Link href="/stats">
+                  <Button variant="outline" size="sm" className="flex items-center gap-1 h-8 text-xs">
+                    <BarChart3 className="h-3 w-3" />
+                    <span>통계</span>
+                  </Button>
+                </Link>
+                <Link href="/settings">
+                  <Button variant="outline" size="sm" className="flex items-center gap-1 h-8 text-xs">
+                    <Settings className="h-3 w-3" />
+                    <span>설정</span>
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="p-3 pb-0">
+            <CardTitle className="text-base">나의 기록</CardTitle>
+          </CardHeader>
+          <CardContent className="p-3">
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <h3 className="text-base font-medium">최근 활동</h3>
+                <Link href="/profile/history" className="text-xs text-primary">
+                  전체보기
+                </Link>
+              </div>
+              <PoberList limit={5} showPagination={true} />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <MobileNavigation />
+    </div>
+  )
+}
