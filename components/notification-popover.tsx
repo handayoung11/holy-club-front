@@ -21,7 +21,7 @@ export function NotificationPopover({ hasNewNotification = false, buttonSize = "
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className={`relative ${buttonSize === "large" ? "h-12 w-12" : ""}`}>
-          <BellIcon className={`${buttonSize === "large" ? "h-6 w-6" : "h-5 w-5"}`} />
+          <BellIcon className={`${buttonSize === "large" ? "!h-6 !w-6" : "h-5 w-5"}`} />
           {hasNewNotification && <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>}
           <span className="sr-only">알림</span>
         </Button>

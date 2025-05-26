@@ -41,7 +41,7 @@ export function MobileHeader({ title, hasNotification = false, showBackButton = 
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="h-6 w-6"
+                className="!h-6 !w-6"
               >
                 <path d="m15 18-6-6 6-6" />
               </svg>
@@ -51,7 +51,7 @@ export function MobileHeader({ title, hasNotification = false, showBackButton = 
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="mr-2 h-12 w-12">
-                  <MenuIcon className="h-6 w-6" />
+                  <MenuIcon className="!h-6 !w-6" />
                   <span className="sr-only">메뉴 열기</span>
                 </Button>
               </SheetTrigger>
