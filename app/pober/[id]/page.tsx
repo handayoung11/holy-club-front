@@ -19,9 +19,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
+import { baseUrl } from "@/lib/utils"
 
 interface PoberEntry {
   id: number
@@ -57,7 +59,7 @@ export default function PoberDetailPage({ params }: { params: { id: string } }) 
     async function fetchPoberDetail() {
       try {
         setLoading(true)
-        const response = await fetch(`/api/pober/${params.id}`)
+        const response = await fetch(`${baseUrl}/api/pober/${params.id}`)
 
         if (!response.ok) {
           if (response.status === 404) {
@@ -89,17 +91,16 @@ export default function PoberDetailPage({ params }: { params: { id: string } }) 
 
     try {
       // 실제 구현에서는 여기서 API 호출을 통해 서버에 좋아요 상태 업데이트
-      // const response = await fetch(`/api/pober/${params.id}/like`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({ liked: !isLiked }),
-      // })
+      const response = await fetch(`${baseUrl}/pober/like/${params.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
 
-      // if (!response.ok) {
-      //   throw new Error('좋아요 업데이트 실패')
-      // }
+      if (!response.ok) {
+        throw new Error('좋아요 업데이트 실패')
+      }
 
       console.log(`Post ${params.id} like toggled to ${!isLiked}`)
     } catch (err) {
@@ -120,7 +121,7 @@ export default function PoberDetailPage({ params }: { params: { id: string } }) 
       setIsDeleting(true)
 
       // API 호출로 데이터 삭제
-      const response = await fetch(`/api/pober/${params.id}`, {
+      const response = await fetch(`${baseUrl}/api/pober/${params.id}`, {
         method: "DELETE",
       })
 

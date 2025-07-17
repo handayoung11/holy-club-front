@@ -1,17 +1,51 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { baseUrl, fetcher } from "@/lib/utils";
+import useSWR from "swr";
 
 export default function LoginPage() {
+  const kakaoLogin = async () => {
+    // try {
+    //   const res = await fetch(`${baseUrl}/login`, {
+    //     method: "GET",
+    //   });
+
+    //   if (!res.ok) throw new Error("로그인 요청 실패");
+
+    //   const data = await res.json();
+    //   console.log("로그인 성공:", data);
+
+    //   // 로그인 성공 후 로직
+    // } catch (err) {
+    //   console.error("카카오 로그인 에러:", err);
+    // }
+
+    window.location.href = baseUrl + "/oauth2/authorization/kakao";
+  };
+
   return (
     <div className="flex flex-col w-full min-h-screen max-w-md mx-auto bg-slate-50">
       <div className="flex-1 p-4 flex items-center justify-center">
         <Card className="w-full border-none shadow-sm">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">HolyClub에 오신걸 환영합니다!</CardTitle>
+            <CardTitle className="text-2xl">
+              HolyClub에 오신걸 환영합니다!
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button className="w-full bg-[#FEE500] text-black hover:bg-[#FEE500]/90 h-12">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" className="mr-2">
+            <Button
+              className="w-full bg-[#FEE500] text-black hover:bg-[#FEE500]/90 h-12"
+              onClick={kakaoLogin}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                className="mr-2"
+              >
                 <path
                   fill="#000000"
                   d="M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9S16.97,3,12,3z M12,19c-3.86,0-7-3.14-7-7s3.14-7,7-7s7,3.14,7,7S15.86,19,12,19z"
@@ -21,7 +55,12 @@ export default function LoginPage() {
               카카오 로그인
             </Button>
             <Button className="w-full bg-white text-black border hover:bg-gray-100 flex items-center justify-center gap-2 h-12">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="24px" height="24px">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 48 48"
+                width="24px"
+                height="24px"
+              >
                 <path
                   fill="#FFC107"
                   d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
@@ -45,5 +84,5 @@ export default function LoginPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

@@ -13,7 +13,7 @@ import { PlusIcon, TrashIcon, X, Camera, Clock, BookOpen, Activity, BookMarked }
 import { Slider } from "@/components/ui/slider"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
-import { cn } from "@/lib/utils"
+import { cn, baseUrl } from "@/lib/utils"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
@@ -350,33 +350,54 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
         images,
       }
 
-      let response
+      // 쿠키에서 토큰 가져오기
+      const getTokenFromCookie = () => {
+        const cookies = document.cookie.split(';')
+        const tokenCookie = cookies.find(cookie => 
+          cookie.trim().startsWith('token=')
+        )
+        
+        if (tokenCookie) {
+          return tokenCookie.split('=')[1]
+        }
+        
+        return null
+      }
+
+      const token = getTokenFromCookie()
+      
+      // 헤더 설정
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      }
+      
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`
+      }
+
+      let submitResponse
 
       if (isEditing && initialData?.id) {
         // 수정 API 호출
-        response = await fetch(`/api/pober/${initialData.id}`, {
+        submitResponse = await fetch(`${baseUrl}/api/pober/${initialData.id}`, {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers,
           body: JSON.stringify(poberData),
         })
       } else {
         // 등록 API 호출
-        response = await fetch("/api/pober", {
+        submitResponse = await fetch(`${baseUrl}/api/pober`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers,
           body: JSON.stringify(poberData),
         })
       }
 
-      if (!response.ok) {
+      if (!submitResponse.ok) {
         throw new Error("API 요청 실패")
       }
 
-      const result = await response.json()
+      const result = await submitResponse.json()
 
       toast({
         title: isEditing ? "수정 완료" : "저장 완료",

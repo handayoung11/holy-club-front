@@ -6,10 +6,26 @@ import { useEffect, useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { LoginRequiredDialog } from "@/components/login-required-dialog"
 
-// 임시로 로그인 상태를 확인하는 함수
+// 쿠키에서 토큰을 확인하는 함수
+const getTokenFromCookie = () => {
+  if (typeof document === 'undefined') return null
+  
+  const cookies = document.cookie.split(';')
+  const tokenCookie = cookies.find(cookie => 
+    cookie.trim().startsWith('token=')
+  )
+  
+  if (tokenCookie) {
+    return tokenCookie.split('=')[1]
+  }
+  
+  return null
+}
+
+// 로그인 상태를 확인하는 함수
 const isLoggedIn = () => {
-  // 실제 구현에서는 세션이나 토큰을 확인
-  return false
+  const token = getTokenFromCookie()
+  return token !== null && token !== ''
 }
 
 function WriteLayoutContent({ children }: { children: React.ReactNode }) {

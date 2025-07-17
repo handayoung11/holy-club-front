@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { apiCall } from "@/lib/utils"
 
 // 샘플 데이터 - 실제로는 데이터베이스에서 가져올 것입니다
 // 메인 데이터 배열에 접근하기 위해 외부 파일로 분리하거나 실제 DB를 사용해야 합니다
@@ -61,94 +62,60 @@ const poberEntries = [
 ]
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  // URL에서 id 파라미터 추출
-  const id = Number.parseInt(params.id)
-
-  // ID로 해당 Pober 항목 찾기
-  const poberEntry = poberEntries.find((entry) => entry.id === id)
-
-  // 항목이 없으면 404 반환
-  if (!poberEntry) {
-    return NextResponse.json({ error: "Pober not found" }, { status: 404 })
+  try {
+    const id = await params.id
+    
+    // 백엔드 API 호출
+    const data = await apiCall(`/pober/${id}`)
+    
+    return NextResponse.json(data)
+  } catch (error) {
+    console.error('Pober 상세 API 에러:', error)
+    return NextResponse.json(
+      { error: '데이터를 불러오는데 실패했습니다' },
+      { status: 500 }
+    )
   }
-
-  // 응답 지연 시뮬레이션 (실제 API 호출처럼 보이게)
-  await new Promise((resolve) => setTimeout(resolve, 500))
-
-  return NextResponse.json({ entry: poberEntry })
 }
 
-// PUT 메서드 추가 - POBER 수정
+// PUT 메서드 - POBER 수정
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    // URL에서 id 파라미터 추출
-    const id = Number.parseInt(params.id)
-
-    // 요청 본문에서 데이터 추출
-    const updatedData = await request.json()
-
-    // ID로 해당 Pober 항목 찾기
-    const index = poberEntries.findIndex((entry) => entry.id === id)
-
-    // 항목이 없으면 404 반환
-    if (index === -1) {
-      return NextResponse.json({ error: "Pober not found" }, { status: 404 })
-    }
-
-    // 기존 항목 가져오기
-    const existingEntry = poberEntries[index]
-
-    // 업데이트된 항목 생성 (기존 데이터 유지하면서 새 데이터로 업데이트)
-    const updatedEntry = {
-      ...existingEntry,
-      date: updatedData.date || existingEntry.date,
-      thought: updatedData.thought !== undefined ? updatedData.thought : existingEntry.thought,
-      prayer: updatedData.prayer || existingEntry.prayer,
-      obedience: updatedData.obedience !== undefined ? updatedData.obedience : existingEntry.obedience,
-      bible: updatedData.bible !== undefined ? updatedData.bible : existingEntry.bible,
-      exercise: updatedData.exercise !== undefined ? updatedData.exercise : existingEntry.exercise,
-      reading: updatedData.reading !== undefined ? updatedData.reading : existingEntry.reading,
-      mediaTime: updatedData.mediaTime !== undefined ? updatedData.mediaTime : existingEntry.mediaTime,
-      images: updatedData.images || existingEntry.images,
-      likes: existingEntry.likes, // 좋아요 수 유지
-    }
-
-    // 배열에서 항목 업데이트
-    poberEntries[index] = updatedEntry
-
-    // 응답 지연 시뮬레이션
-    await new Promise((resolve) => setTimeout(resolve, 500))
-
-    return NextResponse.json({ success: true, entry: updatedEntry })
+    const id = await params.id
+    const body = await request.json()
+    
+    // 백엔드 API 호출
+    const data = await apiCall(`/pober/${id}`, {
+      method: 'PATCH', // 백엔드는 PATCH를 사용
+      body: JSON.stringify(body),
+    })
+    
+    return NextResponse.json(data)
   } catch (error) {
-    console.error("Error updating POBER:", error)
-    return NextResponse.json({ success: false, error: "POBER 수정 중 오류가 발생했습니다." }, { status: 500 })
+    console.error('Pober 수정 API 에러:', error)
+    return NextResponse.json(
+      { error: '글 수정에 실패했습니다' },
+      { status: 500 }
+    )
   }
 }
 
-// DELETE 메서드 추가 - POBER 삭제
+// DELETE 메서드 - POBER 삭제
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    // URL에서 id 파라미터 추출
-    const id = Number.parseInt(params.id)
-
-    // ID로 해당 Pober 항목 찾기
-    const index = poberEntries.findIndex((entry) => entry.id === id)
-
-    // 항목이 없으면 404 반환
-    if (index === -1) {
-      return NextResponse.json({ error: "Pober not found" }, { status: 404 })
-    }
-
-    // 배열에서 항목 삭제
-    poberEntries.splice(index, 1)
-
-    // 응답 지연 시뮬레이션
-    await new Promise((resolve) => setTimeout(resolve, 500))
-
-    return NextResponse.json({ success: true, message: "POBER가 성공적으로 삭제되었습니다." })
+    const id = await params.id
+    
+    // 백엔드 API 호출
+    const data = await apiCall(`/pober/${id}`, {
+      method: 'DELETE',
+    })
+    
+    return NextResponse.json(data)
   } catch (error) {
-    console.error("Error deleting POBER:", error)
-    return NextResponse.json({ success: false, error: "POBER 삭제 중 오류가 발생했습니다." }, { status: 500 })
+    console.error('Pober 삭제 API 에러:', error)
+    return NextResponse.json(
+      { error: '글 삭제에 실패했습니다' },
+      { status: 500 }
+    )
   }
 }

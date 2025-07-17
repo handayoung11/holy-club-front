@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MessageSquare, Edit2, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { baseUrl } from "@/lib/utils";
 
 interface CommentUser {
   name: string;
@@ -48,7 +49,7 @@ export function CommentSection({ postId }: CommentSectionProps) {
     async function fetchComments() {
       try {
         setLoading(true);
-        const response = await fetch(`/api/pober/${postId}/comments`);
+        const response = await fetch(`${baseUrl}/pober/${postId}/comments`);
 
         if (!response.ok) {
           throw new Error("댓글을 불러오는데 실패했습니다");
@@ -72,7 +73,7 @@ export function CommentSection({ postId }: CommentSectionProps) {
 
     try {
       setSubmitting(true);
-      const response = await fetch(`/api/pober/${postId}/comments`, {
+      const addResponse = await fetch(`${baseUrl}/pober/${postId}/comments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -80,11 +81,11 @@ export function CommentSection({ postId }: CommentSectionProps) {
         body: JSON.stringify({ content: newComment }),
       });
 
-      if (!response.ok) {
+      if (!addResponse.ok) {
         throw new Error("댓글 작성에 실패했습니다");
       }
 
-      const data = await response.json();
+      const data = await addResponse.json();
 
       // 실제 API 응답에서는 새로운 댓글 목록을 다시 가져오거나
       // 새 댓글을 목록에 추가하는 방식으로 처리할 수 있습니다
@@ -112,7 +113,7 @@ export function CommentSection({ postId }: CommentSectionProps) {
 
     try {
       setSubmitting(true);
-      const response = await fetch(`/api/pober/${postId}/comments`, {
+      const replyResponse = await fetch(`${baseUrl}/pober/${postId}/comments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -120,7 +121,7 @@ export function CommentSection({ postId }: CommentSectionProps) {
         body: JSON.stringify({ content: replyContent, parentId: commentId }),
       });
 
-      if (!response.ok) {
+      if (!replyResponse.ok) {
         throw new Error("답글 작성에 실패했습니다");
       }
 
@@ -171,8 +172,8 @@ export function CommentSection({ postId }: CommentSectionProps) {
 
     try {
       setSubmitting(true);
-      const response = await fetch(
-        `/api/pober/${postId}/comments/${commentId}`,
+      const editResponse = await fetch(
+        `${baseUrl}/pober/${postId}/comments/${commentId}`,
         {
           method: "PUT",
           headers: {
@@ -182,7 +183,7 @@ export function CommentSection({ postId }: CommentSectionProps) {
         }
       );
 
-      if (!response.ok) {
+      if (!editResponse.ok) {
         throw new Error("댓글 수정에 실패했습니다");
       }
 
@@ -219,14 +220,14 @@ export function CommentSection({ postId }: CommentSectionProps) {
 
     try {
       setSubmitting(true);
-      const response = await fetch(
-        `/api/pober/${postId}/comments/${commentId}`,
+      const deleteResponse = await fetch(
+        `${baseUrl}/pober/${postId}/comments/${commentId}`,
         {
           method: "DELETE",
         }
       );
 
-      if (!response.ok) {
+      if (!deleteResponse.ok) {
         throw new Error("댓글 삭제에 실패했습니다");
       }
 

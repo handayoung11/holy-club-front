@@ -9,24 +9,37 @@ import { Clock, BookMarked, X, Quote, ChevronRight, Heart, MessageSquare } from 
 import Link from "next/link"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
+import { baseUrl } from "@/lib/utils"
 
-interface PoberEntry {
-  id: number
-  user: {
-    name: string
-    avatar: string
-  }
-  date: string
-  thought?: string
-  prayer: string
-  bible: string
-  exercise?: string
-  reading?: string
-  comments: number
-  likes: number // 추가된 필드
+export interface Bible {
+  chapter: string;
+  end: number;
+  id: number;
+  start: number;
 }
 
-interface PoberListProps {
+export interface PoberEntry {
+  id: number;
+  user: {
+    name: string;
+    avatar?: string;
+  };
+  date: string;
+  thought?: string;
+  memo?: string; // 백엔드 필드명
+  prayer: string;
+  bibles: Bible[];
+  exercise?: string;
+  exer?: string; // 백엔드 필드명
+  reading?: string;
+  obd?: string; // 백엔드 필드명
+  media?: number;
+  comments?: number;
+  likes?: number;
+  mediaPic?: string[];
+}
+
+export interface PoberListProps {
   date?: string
   entries?: PoberEntry[]
   limit?: number
@@ -34,7 +47,7 @@ interface PoberListProps {
   totalEntries?: number
   totalPages?: number
   currentPage?: number
-  onPageChange?: (page: number) => void
+  onPageChange?: (page: number) => Promise<any>
 }
 
 export function PoberList({
@@ -57,6 +70,8 @@ export function PoberList({
   const [likedPosts, setLikedPosts] = useState<Record<number, boolean>>({})
 
   const loadMoreRef = useRef(null)
+
+  console.log('pober-list-entries', poberEntries);
 
   const handleLike = (e: React.MouseEvent, postId: number) => {
     e.preventDefault() // 링크 이동 방지
@@ -116,7 +131,7 @@ export function PoberList({
       try {
         setLoading(true)
         // date가 제공되면 날짜 범위 검색, 아니면 모든 항목 가져오기
-        let url = "/api/pober"
+        let url = `${baseUrl}/pober`
 
         if (date) {
           // 단일 날짜 검색 대신 날짜 범위 검색 사용
@@ -131,25 +146,41 @@ export function PoberList({
         }
 
         // 페이지 정보 추가
-        url = `${url}${url.includes("?") ? "&" : "?"}page=${currentPage}&limit=${limit}`
+        url = `${url}${url.includes("?") ? "&" : "?"}page=${currentPage}&size=${limit}`
 
         const response = await fetch(url)
 
+        
         if (!response.ok) {
           throw new Error("데이터를 불러오는데 실패했습니다")
         }
-
+        
         const data = await response.json()
+        console.log('pober-list-response-data', data);
 
-        // 페이지가 1보다 크면 기존 데이터에 새 데이터 추가
-        if (currentPage > 1) {
-          setPoberEntries((prev) => [...prev, ...data.entries])
-        } else {
-          setPoberEntries(data.entries)
+        // 백엔드 응답 구조에 맞게 수정
+        const entries = data;
+        
+        // undefined나 null인 경우만 처리
+        if (!Array.isArray(entries)) {
+          setPoberEntries([])
+          setTotalEntries(0)
+          setTotalPages(1)
+          setLoading(false)
+          return
         }
 
-        setTotalEntries(data.totalEntries || data.entries.length)
-        setTotalPages(data.totalPages || Math.ceil(data.entries.length / limit))
+        console.log('pober-list-entries', entries);
+        
+        // 페이지가 1보다 크면 기존 데이터에 새 데이터 추가
+        if (currentPage > 1) {
+          setPoberEntries((prev) => [...prev, ...entries])
+        } else {
+          setPoberEntries(entries)
+        }
+
+        setTotalEntries(data.totalElements || data.totalEntries || entries.length)
+        setTotalPages(data.totalPages || Math.ceil(entries.length / limit))
       } catch (err) {
         console.error("Error fetching pober entries:", err)
         setError("데이터를 불러오는데 문제가 발생했습니다")
@@ -170,9 +201,10 @@ export function PoberList({
       // 외부에서 페이지 변경을 처리하는 콜백이 있으면 호출
       if (onPageChange) {
         onPageChange(newPage)
-          .then((data) => {
+          .then((data: any) => {
             // 기존 데이터에 새 데이터 추가 (무한 스크롤)
-            setPoberEntries((prev) => [...prev, ...data.entries])
+            const entries = data.content || data.entries || data || []
+            setPoberEntries((prev) => [...prev, ...entries])
             setPageLoading(false)
           })
           .catch(() => {
@@ -190,7 +222,7 @@ export function PoberList({
 
   // 기도 시간이 0분인지 확인하는 함수
   const isPrayerZero = (prayer: string) => {
-    return !prayer || prayer === "0분" || prayer === "0시간"
+    return !prayer || prayer === "0분" || prayer === "0시간" || prayer === "0"
   }
 
   if (loading) {
@@ -277,11 +309,12 @@ export function PoberList({
                 </div>
 
                 {/* 한줄 소감 */}
-                {entry.thought && (
+                {/* {entry.thought && ( */}
+                {entry.memo && (
                   <div className="mb-3 px-2 py-2 bg-gray-50 rounded-lg border border-gray-100 italic text-sm text-gray-600">
                     <div className="flex items-start">
                       <Quote className="h-3.5 w-3.5 mr-1.5 mt-0.5 text-gray-400" />
-                      <p className="line-clamp-2">{entry.thought}</p>
+                      <p className="line-clamp-2">{entry.memo}</p>
                     </div>
                   </div>
                 )}
@@ -312,7 +345,7 @@ export function PoberList({
                   )}
 
                   {/* 말씀 항목 - 있으면 내용 표시, 없으면 X 아이콘만 표시 */}
-                  {entry.bible ? (
+                  {entry.bibles ? (
                     <div className="bg-gradient-to-br from-blue-50 to-slate-50 p-3 rounded-lg border border-blue-100/30 shadow-sm">
                       <div className="flex items-start gap-2">
                         <div className="bg-blue-100 rounded-full p-1.5 flex-shrink-0">
@@ -322,7 +355,7 @@ export function PoberList({
                           <p className="text-xs font-medium text-blue-600 mb-1 flex items-center">
                             말씀 <span className="ml-1 text-blue-400">(B)</span>
                           </p>
-                          <p className="text-sm leading-relaxed line-clamp-2 text-slate-700">{entry.bible}</p>
+                          <p className="text-sm leading-relaxed line-clamp-2 text-slate-700">{entry.bibles[0].chapter + " " + entry.bibles[0].start + "장 ~ " + entry.bibles[0].end + "장"}</p>
                         </div>
                       </div>
                     </div>
@@ -343,13 +376,13 @@ export function PoberList({
                   >
                     <Heart className={`h-5 w-5 ${likedPosts[entry.id] ? "fill-red-500 text-red-500" : ""}`} />
                     <span className={`text-sm font-medium ${likedPosts[entry.id] ? "text-red-500" : ""}`}>
-                      {likedPosts[entry.id] ? entry.likes + 1 : entry.likes}
+                      {likedPosts[entry.id] ? (entry.likes || 0) + 1 : entry.likes || 0}
                     </span>
                   </button>
 
                   <div className="flex items-center gap-1.5 px-3 py-2 rounded-full text-gray-500">
                     <MessageSquare className="h-5 w-5" />
-                    <span className="text-sm font-medium">{entry.comments}</span>
+                    <span className="text-sm font-medium">{entry.comments || 0}</span>
                   </div>
                 </div>
               </CardContent>
