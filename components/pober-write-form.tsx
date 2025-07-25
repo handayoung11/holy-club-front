@@ -13,26 +13,33 @@ import { PlusIcon, TrashIcon, X, Camera, Clock, BookOpen, Activity, BookMarked }
 import { Slider } from "@/components/ui/slider"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
-import { cn, baseUrl } from "@/lib/utils"
+import { cn, baseUrl, getTokenFromLocalStorage } from "@/lib/utils"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
+
+interface BibleData {
+  id: number,
+  chapter: string,
+  start: number,
+  end: number
+}
 interface PoberData {
-  id?: number
+  id?: number;
   user?: {
-    name: string
-    avatar: string
-  }
-  date?: string
-  thought?: string
-  prayer?: string
-  obedience?: string
-  bible?: string
-  exercise?: string // 실제로는 exercise(운동)
-  reading?: string // 실제로는 read(독서)
-  mediaTime?: number
-  images?: string[]
-  comments?: number
+    name: string;
+    avatar: string;
+  };
+  date?: string;
+  memo?: string;
+  prayer?: number;
+  obd?: string;
+  bibles?: BibleData[];
+  exer?: string; // 실제로는 exercise(운동)
+  reading?: string; // 실제로는 read(독서)
+  media?: number;
+  images?: string[];
+  comments?: number;
 }
 
 interface PoberWriteFormProps {
@@ -50,8 +57,8 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
   const yesterday = new Date()
   yesterday.setDate(yesterday.getDate() - 1)
   const [date, setDate] = useState(yesterday.toISOString().split("T")[0])
-  const [prayerHours, setPrayerHours] = useState("1")
-  const [prayerMinutes, setPrayerMinutes] = useState("0")
+  const [prayerHours, setPrayerHours] = useState(1)
+  const [prayerMinutes, setPrayerMinutes] = useState(0)
   const [obedience, setObedience] = useState("")
   const [bibleVerses, setBibleVerses] = useState<string[]>([])
   const [exercise, setExercise] = useState("") // 변수명 수정: evangelism -> exercise
@@ -210,6 +217,8 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
   // initialData가 있으면 폼 데이터 초기화
   useEffect(() => {
     if (isEditing && initialData) {
+      console.log("initialData", initialData);
+
       // 날짜 설정
       if (initialData.date) {
         setDate(initialData.date)
@@ -217,27 +226,26 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
 
       // 기도 시간 설정
       if (initialData.prayer) {
-        const prayerMatch = initialData.prayer.match(/(\d+)시간(?:\s*(\d+)분)?/)
-        if (prayerMatch) {
-          setPrayerHours(prayerMatch[1] || "0")
-          setPrayerMinutes(prayerMatch[2] || "0")
-        }
+        setPrayerHours(Math.floor(initialData.prayer / 60));
+        setPrayerMinutes(initialData.prayer % 60);
       }
 
       // 순종 설정
-      if (initialData.obedience) {
-        setObedience(initialData.obedience)
+      if (initialData.obd) {
+        setObedience(initialData.obd);
       }
 
       // 성경 구절 설정
-      if (initialData.bible) {
-        const verses = initialData.bible.split(",").map((verse) => verse.trim())
-        setBibleVerses(verses.length > 0 ? verses : [""])
+      if (initialData.bibles) {
+        const verses = initialData.bibles.map((value) => {
+          return value.chapter + " " + value.start + "~" + value.end + "장";
+        });
+        setBibleVerses(verses);
       }
 
       // 운동(E) 설정
-      if (initialData.exercise) {
-        setExercise(initialData.exercise)
+      if (initialData.exer) {
+        setExercise(initialData.exer);
       }
 
       // 독서(R) 설정
@@ -246,13 +254,13 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
       }
 
       // 미디어 시간 설정
-      if (initialData.mediaTime !== undefined) {
-        setMediaTime(initialData.mediaTime)
+      if (initialData.media !== undefined) {
+        setMediaTime(initialData.media);
       }
 
       // 한줄 소감 설정
-      if (initialData.thought) {
-        setThought(initialData.thought)
+      if (initialData.memo) {
+        setThought(initialData.memo);
       }
 
       // 이미지 설정 (첫 번째 이미지만 사용)
@@ -328,68 +336,57 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
     try {
       setIsSubmitting(true)
 
-      // 기도 시간 포맷팅
-      const prayerTime = `${prayerHours}시간 ${prayerMinutes}분`
+      // FormData 생성
+      const formData = new FormData();
+      // prayer: 시간, 분을 합산해서 분 단위로 변환
+      const prayerMinutesTotal = (parseInt(prayerHours, 10) || 0) * 60 + (parseInt(prayerMinutes, 10) || 0);
+      formData.append("prayer", String(prayerMinutesTotal));
+      formData.append("poberDate", date);
+      formData.append("memo", thought || "");
+      formData.append("obd", obedience || "");
+      formData.append("exer", exercise || "");
+      formData.append("reading", reading || "");
+      formData.append("media", String(mediaTime));
 
-      // 성경 구절 포맷팅
-      const bibleText = bibleVerses.join(", ")
-
-      // 이미지 배열 생성
-      const images = mediaImage ? [mediaImage] : []
-
-      // 제출할 데이터 객체 생성
-      const poberData = {
-        date,
-        thought,
-        prayer: prayerTime,
-        obedience,
-        bible: bibleText,
-        exercise,
-        reading,
-        mediaTime,
-        images,
-      }
-
-      // 쿠키에서 토큰 가져오기
-      const getTokenFromCookie = () => {
-        const cookies = document.cookie.split(';')
-        const tokenCookie = cookies.find(cookie => 
-          cookie.trim().startsWith('token=')
-        )
-        
-        if (tokenCookie) {
-          return tokenCookie.split('=')[1]
+      // bibleVerses 배열을 bibles[0].chapter, bibles[0].start, ... 형태로 파싱해서 추가
+      bibleVerses.forEach((verse, idx) => {
+        // 예시: '창세기 1-3장' 또는 '창세기 1장'
+        const match = verse.match(/^(.*?)\s(\d+)(?:-(\d+))?장$/);
+        if (match) {
+          const chapter = match[1];
+          const start = match[2];
+          const end = match[3] || match[2];
+          formData.append(`bibles[${idx}].chapter`, chapter);
+          formData.append(`bibles[${idx}].start`, start);
+          formData.append(`bibles[${idx}].end`, end);
         }
-        
-        return null
+      });
+
+      // 이미지 배열 추가 (mediaImage가 있으면)
+      if (mediaImage) {
+        formData.append("images", mediaImage);
       }
 
-      const token = getTokenFromCookie()
-      
-      // 헤더 설정
-      const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-      }
-      
+      const token = getTokenFromLocalStorage();
+      const headers: Record<string, string> = {}
       if (token) {
         headers["Authorization"] = `Bearer ${token}`
       }
 
       let submitResponse
-
       if (isEditing && initialData?.id) {
         // 수정 API 호출
-        submitResponse = await fetch(`${baseUrl}/api/pober/${initialData.id}`, {
-          method: "PUT",
+        submitResponse = await fetch(`${baseUrl}/pober/${initialData?.id}`, {
+          method: "PATCH",
           headers,
-          body: JSON.stringify(poberData),
-        })
+          body: formData,
+        });
       } else {
         // 등록 API 호출
-        submitResponse = await fetch(`${baseUrl}/api/pober`, {
+        submitResponse = await fetch(`${baseUrl}/pober`, {
           method: "POST",
           headers,
-          body: JSON.stringify(poberData),
+          body: formData,
         })
       }
 

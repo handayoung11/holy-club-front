@@ -2,20 +2,23 @@
 
 import { useState } from "react"
 import { Search, Calendar, User, ChevronDown } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { baseUrl, cn } from "@/lib/utils"
 
 interface SearchBarProps {
   className?: string
   onSearch?: (results: any[], pagination?: { totalEntries: number; totalPages: number; currentPage: number }) => void
   onSearchParamsChange?: (type: "person" | "date", personQuery: string, startDate: string, endDate: string) => void
+  searchType: "person" | "date"
+  setSearchType: (type: "person" | "date") => void
+  personQuery: string
+  setPersonQuery: (v: string) => void
+  startDate: string
+  setStartDate: (v: string) => void
+  endDate: string
+  setEndDate: (v: string) => void
 }
 
-export function SearchBar({ className, onSearch, onSearchParamsChange }: SearchBarProps) {
-  const [searchType, setSearchType] = useState<"person" | "date">("person")
-  const [personQuery, setPersonQuery] = useState("")
-  const [startDate, setStartDate] = useState("")
-  const [endDate, setEndDate] = useState("")
-
+export function SearchBar({ className, onSearch, onSearchParamsChange, searchType, setSearchType, personQuery, setPersonQuery, startDate, setStartDate, endDate, setEndDate }: SearchBarProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -31,7 +34,9 @@ export function SearchBar({ className, onSearch, onSearchParamsChange }: SearchB
 
       if (searchType === "person") {
         // API 호출
-        const response = await fetch(`/api/pober?nickname=${encodeURIComponent(personQuery.trim())}`)
+        const response = await fetch(
+          `${baseUrl}/pober?nickname=${encodeURIComponent(personQuery.trim())}`
+        );
 
         if (!response.ok) {
           throw new Error("데이터를 불러오는데 실패했습니다")
@@ -62,7 +67,7 @@ export function SearchBar({ className, onSearch, onSearchParamsChange }: SearchB
         }
 
         // API 호출
-        const response = await fetch(`/api/pober?startDate=${effectiveStartDate}&endDate=${effectiveEndDate}`)
+        const response = await fetch(`${baseUrl}/pober?startDate=${effectiveStartDate}&endDate=${effectiveEndDate}`)
 
         if (!response.ok) {
           throw new Error("데이터를 불러오는데 실패했습니다")

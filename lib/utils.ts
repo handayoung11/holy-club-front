@@ -7,7 +7,9 @@ export function cn(...inputs: ClassValue[]) {
 
 // export const baseUrl = "http://cuvetechnlogis.ddns.net";
 // export const baseUrl = "http://localhost:8080";
+// export const baseUrl = "https://6035cb8c7fbc.ngrok-free.app";
 export const baseUrl = "https://holy-club-back.onrender.com";
+// export const baseUrl = "http://192.168.45.60:8080";
 
 export const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -22,6 +24,19 @@ export function getTokenFromCookie(): string | null {
   
   if (tokenCookie) {
     return tokenCookie.split('=')[1];
+  }
+  
+  return null;
+}
+
+// 쿠키에서 토큰을 확인하는 함수
+export function getTokenFromLocalStorage(): string | null {
+  if (typeof document === 'undefined') return null;
+  
+  const token = localStorage.getItem("token");
+  
+  if (token) {
+    return token;
   }
   
   return null;

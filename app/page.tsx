@@ -1,134 +1,148 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { MobileHeader } from "@/components/mobile-header"
 import { MobileNavigation } from "@/components/mobile-navigation"
-import { PoberList } from "@/components/pober-list"
+import { PoberList, PoberEntry } from "@/components/pober-list"
 import { PlusIcon } from "lucide-react"
 import { SearchBar } from "@/components/search-bar"
+import { baseUrl } from "@/lib/utils"
 
 export default function Home() {
-  const [searchResults, setSearchResults] = useState<any[] | null>(null)
-  const [searchPerformed, setSearchPerformed] = useState(false)
-  const [searchPagination, setSearchPagination] = useState<{
-    totalEntries: number
-    totalPages: number
-    currentPage: number
-  } | null>(null)
-  const [currentSearchPage, setCurrentSearchPage] = useState(1)
-  const [searchType, setSearchType] = useState<"person" | "date" | null>("person")
+  const [entries, setEntries] = useState<PoberEntry[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalEntries, setTotalEntries] = useState(0)
+  const [searchType, setSearchType] = useState<"person" | "date">("person")
   const [personQuery, setPersonQuery] = useState("")
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
+  const [searchPerformed, setSearchPerformed] = useState(false)
   const [pageLoading, setPageLoading] = useState(false)
+  const loadMoreRef = useRef<HTMLDivElement | null>(null)
 
-  const handleSearch = (
-    results: any[],
-    pagination?: { totalEntries: number; totalPages: number; currentPage: number },
-    noInput = false,
-  ) => {
-    setSearchResults(results)
-    setSearchPerformed(!noInput)
-    setSearchPagination(pagination || null)
-    setCurrentSearchPage(1) // 검색 시 페이지를 1로 초기화
-  }
 
-  const handleSearchPageChange = async (page: number) => {
-    setCurrentSearchPage(page)
+  console.log(entries);
 
-    // 스크롤을 맨 위로 이동하지 않음 - 무한 스크롤에서는 필요 없음
-    // window.scrollTo({ top: 0, behavior: "smooth" });
-
+  // API 호출 함수
+  const fetchEntries = async (page: number, name?: string, startDate?: string, endDate?: string) => {
+    setLoading(true)
+    setError(null)
     try {
-      setPageLoading(true)
-      // 현재 검색 조건으로 새 페이지 데이터 요청
-      let url = `/api/pober?page=${page}&limit=5`
-
-      // 검색 조건에 따라 URL 파라미터 추가
-      if (searchType === "person" && personQuery) {
-        url += `&nickname=${encodeURIComponent(personQuery)}`
-      } else if (searchType === "date") {
-        if (startDate) url += `&startDate=${startDate}`
-        if (endDate) url += `&endDate=${endDate}`
-      }
-
+      let url = `${baseUrl}/pober`;
+      const params: string[] = [];
+      if (searchType === "person" && name) params.push(`name=${encodeURIComponent(name)}`)
+      if (searchType === "date" && startDate) params.push(`startDate=${encodeURIComponent(startDate)}`)
+      if (searchType === "date" && endDate) params.push(`endDate=${encodeURIComponent(endDate)}`)
+      params.push(`page=${page}`)
+      params.push(`size=5`)
+      if (params.length > 0) url += `?${params.join("&")}`
       const response = await fetch(url)
-      if (!response.ok) throw new Error("페이지 데이터를 불러오는데 실패했습니다")
-
+      // if (!response.ok) throw new Error("데이터를 불러오는데 실패했습니다")
       const data = await response.json()
-
-      // 페이지가 1보다 크면 기존 데이터에 새 데이터 추가
-      if (page > 1) {
-        setSearchResults((prev) => [...prev, ...data.entries])
-      } else {
-        setSearchResults(data.entries)
-      }
-
-      setSearchPagination({
-        totalEntries: data.totalEntries,
-        totalPages: data.totalPages,
-        currentPage: page,
-      })
+      // data가 배열이거나, content 필드에 배열이 있거나, entries 필드에 배열이 있을 수 있음
+      const resultEntries = Array.isArray(data) ? data : data.content || data.entries || []
+      setEntries(page > 1 ? (prev) => [...prev, ...resultEntries] : resultEntries)
+      setTotalEntries(data.totalElements || data.totalEntries || resultEntries.length)
+      setTotalPages(data.totalPages || 1)
+    } catch (e: any) {
+      setError(e.message || "알 수 없는 오류")
+    } finally {
+      setLoading(false)
       setPageLoading(false)
-      return data // Promise 반환
-    } catch (error) {
-      console.error("Error fetching search page:", error)
-      setPageLoading(false)
-      throw error // 에러를 다시 throw하여 Promise가 reject되도록 함
     }
   }
 
-  const handleSearchParamsChange = (type: "person" | "date", query: string, start: string, end: string) => {
-    setSearchType(type)
-    setPersonQuery(query)
-    setStartDate(start)
-    setEndDate(end)
-  }
+  const loginEnd = async () => {
+    try {
+      const response = await fetch(`${baseUrl}/token`, {
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("로그인에 실패했습니다.");
+      }
+      console.log("loginActive", response);
+    } catch (err) {}
+  };
+
+  useEffect(() => {
+    loginEnd();
+  }, []);
+
+  // 최초 로딩 및 검색 조건 변경 시
+  useEffect(() => {
+    setCurrentPage(1)
+    fetchEntries(1, personQuery, startDate, endDate)
+    setSearchPerformed(!!(personQuery || startDate || endDate))
+    // eslint-disable-next-line
+  }, [searchType])
+
+  // 무한 스크롤 (IntersectionObserver)
+  useEffect(() => {
+    if (!loadMoreRef.current || loading || pageLoading || currentPage >= totalPages) return
+    const observer = new window.IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setPageLoading(true)
+        fetchEntries(currentPage + 1, personQuery, startDate, endDate)
+        setCurrentPage((prev) => prev + 1)
+      }
+    }, { threshold: 1.0 })
+    observer.observe(loadMoreRef.current)
+    return () => observer.disconnect()
+    // eslint-disable-next-line
+  }, [loadMoreRef.current, loading, pageLoading, currentPage, totalPages])
 
   return (
     <div className="flex flex-col w-full min-h-screen max-w-md mx-auto bg-slate-50">
       <MobileHeader title="POBER" hasNotification={true} />
-
       <div className="flex-1 p-4 pb-20">
         <SearchBar
           className="mb-4"
-          onSearch={handleSearch}
-          onSearchParamsChange={handleSearchParamsChange}
-          onSearchTypeChange={(type) => setSearchType(type)}
-          onPersonQueryChange={(query) => setPersonQuery(query)}
-          onStartDateChange={(date) => setStartDate(date)}
-          onEndDateChange={(date) => setEndDate(date)}
+          onSearch={() => {
+            setCurrentPage(1);
+            fetchEntries(1, personQuery, startDate, endDate);
+          }}
+          onSearchParamsChange={(
+            type: "person" | "date",
+            query: string,
+            start: string,
+            end: string
+          ) => {
+            setSearchType(type);
+            setPersonQuery(query);
+            setStartDate(start);
+            setEndDate(end);
+          }}
+          searchType={searchType}
+          setSearchType={setSearchType}
+          personQuery={personQuery}
+          setPersonQuery={setPersonQuery}
+          startDate={startDate}
+          setStartDate={setStartDate}
+          endDate={endDate}
+          setEndDate={setEndDate}
         />
-
-        {searchPerformed ? (
-          <div>
-            <h2 className="text-lg font-medium mb-3">
-              검색 결과 ({searchPagination?.totalEntries || searchResults?.length || 0})
-            </h2>
-            {searchResults && searchResults.length > 0 ? (
-              <PoberList
-                entries={searchResults}
-                limit={5}
-                showPagination={true}
-                totalEntries={searchPagination?.totalEntries}
-                totalPages={searchPagination?.totalPages}
-                currentPage={currentSearchPage}
-                onPageChange={handleSearchPageChange}
-              />
-            ) : (
-              <div className="p-8 text-center">
-                <p className="text-muted-foreground">검색 결과가 없습니다.</p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div>
-            <PoberList limit={5} showPagination={true} />
+        {loading && (
+          <div className="p-8 text-center text-gray-400">로딩 중...</div>
+        )}
+        {error && <div className="p-8 text-center text-red-500">{error}</div>}
+        {!loading && <PoberList entries={entries} />}
+        {/* 무한 스크롤 로딩 표시기 */}
+        {pageLoading && (
+          <div className="flex justify-center items-center py-6 mt-2">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+            <p className="text-sm text-muted-foreground mt-2">
+              더 불러오는 중...
+            </p>
           </div>
         )}
-
+        {/* 무한 스크롤 트리거 */}
+        <div ref={loadMoreRef}></div>
         <Link href="/write?bypass=true">
           <Button
             className="h-14 w-14 rounded-full fixed bottom-20 right-4 shadow-lg flex items-center justify-center bg-primary hover:bg-primary/90"
@@ -138,8 +152,7 @@ export default function Home() {
           </Button>
         </Link>
       </div>
-
       <MobileNavigation />
     </div>
-  )
+  );
 }

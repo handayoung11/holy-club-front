@@ -53,10 +53,10 @@ export function MobileSidebar() {
             <BarChart className="mr-2 h-5 w-5" />
             통계
           </Link>
-          <Link href="/settings" className={cn(linkButtonClass, "bg-transparent")}>
+          {/* <Link href="/settings" className={cn(linkButtonClass, "bg-transparent")}>
             <Settings className="mr-2 h-5 w-5" />
             설정
-          </Link>
+          </Link> */}
         </div>
       </div>
       <div className="mt-auto px-3 py-2 space-y-2">

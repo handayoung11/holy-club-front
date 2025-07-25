@@ -4,9 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { baseUrl, fetcher } from "@/lib/utils"
 import Link from "next/link"
-import useSWR from "swr";
 
 export function LoginForm() {
   

@@ -3,25 +3,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { baseUrl, fetcher } from "@/lib/utils";
-import useSWR from "swr";
 
 export default function LoginPage() {
   const kakaoLogin = async () => {
-    // try {
-    //   const res = await fetch(`${baseUrl}/login`, {
-    //     method: "GET",
-    //   });
-
-    //   if (!res.ok) throw new Error("로그인 요청 실패");
-
-    //   const data = await res.json();
-    //   console.log("로그인 성공:", data);
-
-    //   // 로그인 성공 후 로직
-    // } catch (err) {
-    //   console.error("카카오 로그인 에러:", err);
-    // }
-
     window.location.href = baseUrl + "/oauth2/authorization/kakao";
   };
 

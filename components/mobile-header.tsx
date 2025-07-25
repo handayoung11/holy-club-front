@@ -63,7 +63,7 @@ export function MobileHeader({ title, hasNotification = false, showBackButton = 
           <h1 className="text-lg font-bold">{title}</h1>
         </div>
 
-        <NotificationPopover hasNewNotification={hasNotification} buttonSize="large" />
+        {/* <NotificationPopover hasNewNotification={hasNotification} buttonSize="large" /> */}
       </div>
     </header>
   )
