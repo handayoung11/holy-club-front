@@ -6,6 +6,8 @@ import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Clock, Quote, ChevronRight, BookMarked, X, Heart, MessageSquare } from "lucide-react"
+import { fetchWithAuthRetry } from "@/Auth/fetchWrapper"
+import HeartToggle from "./ui/heart"
 
 export interface Bible {
   chapter: string;
@@ -30,8 +32,9 @@ export interface PoberEntry {
   reading?: string;
   obd?: string; // 백엔드 필드명
   media?: number;
-  comments?: number;
-  likes?: number;
+  commentCount?: number;
+  likeCount?: number;
+  liked?: boolean;
   mediaPic?: string[];
 }
 
@@ -101,9 +104,12 @@ export function PoberList({ entries = [] }: PoberListProps) {
                         </div>
                         <div className="flex-1">
                           <p className="text-xs font-medium text-purple-600 mb-1 flex items-center">
-                            기도 <span className="ml-1 text-purple-400">(P)</span>
+                            기도{" "}
+                            <span className="ml-1 text-purple-400">(P)</span>
                           </p>
-                          <p className="text-sm leading-relaxed line-clamp-2 text-slate-700">{entry.prayer}분</p>
+                          <p className="text-sm leading-relaxed line-clamp-2 text-slate-700">
+                            {entry.prayer}분
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -126,7 +132,12 @@ export function PoberList({ entries = [] }: PoberListProps) {
                             말씀 <span className="ml-1 text-blue-400">(B)</span>
                           </p>
                           <p className="text-sm leading-relaxed line-clamp-2 text-slate-700">
-                            {entry.bibles[0].chapter + " " + entry.bibles[0].start + "장 ~ " + entry.bibles[0].end + "장"}
+                            {entry.bibles[0].chapter +
+                              " " +
+                              entry.bibles[0].start +
+                              "장 ~ " +
+                              entry.bibles[0].end +
+                              "장"}
                           </p>
                         </div>
                       </div>
@@ -144,16 +155,17 @@ export function PoberList({ entries = [] }: PoberListProps) {
                   {entry.exercise && <span>운동: {entry.exercise}</span>}
                   {entry.reading && <span>독서: {entry.reading}</span>}
                   {entry.obd && <span>순종: {entry.obd}</span>}
-                  {entry.media !== undefined && <span>미디어: {entry.media}분</span>}
+                  {entry.media !== undefined && (
+                    <span>미디어: {entry.media}분</span>
+                  )}
                 </div>
                 <div className="flex justify-end mt-3 space-x-1">
-                  <div className="flex items-center gap-1.5 px-3 py-2 rounded-full text-gray-500">
-                    <Heart className="h-5 w-5" />
-                    <span className="text-sm font-medium">{entry.likes || 0}</span>
-                  </div>
+                  <HeartToggle id={entry.id} likeCount={entry.likeCount} liked={entry.liked} />
                   <div className="flex items-center gap-1.5 px-3 py-2 rounded-full text-gray-500">
                     <MessageSquare className="h-5 w-5" />
-                    <span className="text-sm font-medium">{entry.comments || 0}</span>
+                    <span className="text-sm font-medium">
+                      {entry.commentCount || 0}
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -162,5 +174,5 @@ export function PoberList({ entries = [] }: PoberListProps) {
         ))}
       </div>
     </div>
-  )
+  );
 }

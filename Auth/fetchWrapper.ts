@@ -1,22 +1,38 @@
-import { baseUrl } from "@/lib/utils";
+import { baseUrl, getTokenFromLocalStorage, isLoggedIn } from "@/lib/utils";
 
 // fetchWrapper.ts
 export async function fetchWithAuthRetry(
   input: RequestInfo,
-  init?: RequestInit
+  init: RequestInit = {}
 ): Promise<Response> {
-  const response = await fetch(input, init);
+  const headers = new Headers(init.headers || {});
 
+  // 로그인 상태이면 토큰 추가
+  if (isLoggedIn()) {
+    const token = getTokenFromLocalStorage();
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  const response = await fetch(input, { ...init, headers });
+
+  // 401이면 토큰 갱신 시도
+  
   if (response.status !== 401) {
     return response;
   }
+
   // 401이면 토큰 갱신 시도
   const refreshed = await fetch(`${baseUrl}/token/refresh`, {
     credentials: "include",
     method: "POST",
   });
-    
-    
+
+  if (!refreshed) {
+    // refresh 실패 → 그대로 에러 응답 반환
+    return response;
+  }
+
+
 
   if (!refreshed) {
     // refresh 실패 → 그대로 에러 응답 반환
