@@ -39,19 +39,6 @@ export default function LoginPage() {
     } catch (err) {}
     
   
-    // try {
-    //   const response = await fetch(`${baseUrl}/token`, {
-    //     credentials: "include",
-    //   });
-
-    //   if (!response.ok) {
-       
-    //     throw new Error("로그인에 실패했습니다.");
-    //   }
-
-      
-    //   console.log("loginActive", response);
-    // } catch (err) {}
   };
 
 

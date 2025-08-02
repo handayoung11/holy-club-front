@@ -27,10 +27,10 @@ export function SearchBar({ className, onSearch, onSearchParamsChange, searchTyp
       setLoading(true)
       setError(null)
 
-      if (!startDate && !endDate && !personQuery.trim()) {
-        onSearch([], null, true)
-        return
-      }
+      // if (!startDate && !endDate && !personQuery.trim()) {
+      //   onSearch([], null, true)
+      //   return
+      // }
 
       if (searchType === "person") {
         // API 호출

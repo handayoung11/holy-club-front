@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { use } from "react";
 import { useRouter } from "next/navigation"
 import { MobileHeader } from "@/components/mobile-header"
 import { MobileNavigation } from "@/components/mobile-navigation"
@@ -24,6 +25,7 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
 import { baseUrl, getTokenFromLocalStorage } from "@/lib/utils"
+import { fetchWithAuthRetry } from "@/Auth/fetchWrapper"
 
 // 기존 PoberEntry 인터페이스 삭제 후 새로 정의
 interface PoberDetailResponse {
@@ -47,32 +49,35 @@ interface PoberDetailResponse {
   liked: boolean
 }
 
-export default function PoberDetailPage({ params }: { params: { id: string } }) {
-  const router = useRouter()
-  const { toast } = useToast()
+export default function PoberDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const router = useRouter();
+  const { id } = use(params);
+  const { toast } = useToast();
   const token = getTokenFromLocalStorage();
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [pober, setPober] = useState<PoberDetailResponse | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [isLiked, setIsLiked] = useState(false)
-  const [likeCount, setLikeCount] = useState(0)
-  const [fetching, setFetching] = useState(false)
-  
-  const [detailImage, setDetailImage] = useState()
-  
-  let isMounted = true;
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [pober, setPober] = useState<PoberDetailResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [fetching, setFetching] = useState(false);
+
+  const [detailImage, setDetailImage] = useState();
+
 
   async function fetchPoberDetail() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${baseUrl}/pober/${params.id}`, {
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      });
+      const response = await fetchWithAuthRetry(
+        `${baseUrl}/pober/${id}`,
+        {
+          headers: {
+            Authorization: "Bearer " + token,
+          },
+        }
+      );
 
       if (!response.ok) {
         if (response.status === 404)
@@ -81,72 +86,60 @@ export default function PoberDetailPage({ params }: { params: { id: string } }) 
       }
 
       const data = await response.json();
-      if (!isMounted) return;
       setPober(data);
       setLikeCount(data.likeCount);
       setIsLiked(data.liked);
-
-      // const response = await fetch(`${baseUrl}file/media/${params.mediaPic}`, {
-      //     headers: {
-      //       Authorization: "Bearer " + token,
-      //     },
-      //   });
     } catch (err) {
-      if (!isMounted) return;
       setError(
         err instanceof Error
           ? err.message
           : "데이터를 불러오는데 문제가 발생했습니다"
       );
     } finally {
-      if (isMounted) {
-        setLoading(false);
-        setFetching(false);
-      }
+      setLoading(false);
+      setFetching(false);
     }
   }
-  
 
   useEffect(() => {
     setFetching(true);
+    console.log('active')
     fetchPoberDetail();
     return () => {
-      isMounted = false;
       setFetching(false);
-    }
-  }, [])
+    };
+  }, []);
 
   const handleLikeToggle = async () => {
-    setIsLiked((prev) => !prev)
-    setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1))
+    setIsLiked((prev) => !prev);
+    setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
 
     try {
-      const response = await fetch(`${baseUrl}/pober/like/${params.id}`, {
+      const response = await fetch(`${baseUrl}/pober/like/${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + token,
         },
       });
-      if (!response.ok) throw new Error('좋아요 업데이트 실패')
+      if (!response.ok) throw new Error("좋아요 업데이트 실패");
     } catch (err) {
-      setIsLiked((prev) => !prev)
-      setLikeCount((prev) => (isLiked ? prev + 1 : prev - 1))
+      setIsLiked((prev) => !prev);
+      setLikeCount((prev) => (isLiked ? prev + 1 : prev - 1));
       toast({
         title: "오류 발생",
         description: "좋아요 업데이트에 실패했습니다.",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleDelete = async () => {
     try {
-      setIsDeleting(true)
-      
+      setIsDeleting(true);
 
       // API 호출로 데이터 삭제
-      const response = await fetch(`${baseUrl}/pober/${params.id}`, {
+      const response = await fetch(`${baseUrl}/pober/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: "Bearer " + token,
@@ -154,27 +147,27 @@ export default function PoberDetailPage({ params }: { params: { id: string } }) 
       });
 
       if (!response.ok) {
-        throw new Error("삭제 요청 실패")
+        throw new Error("삭제 요청 실패");
       }
 
       toast({
         title: "삭제 완료",
         description: "POBER 기록이 삭제되었습니다.",
-      })
+      });
 
       router.push("/");
     } catch (err) {
-      console.error("Error deleting POBER:", err)
+      console.error("Error deleting POBER:", err);
       toast({
         title: "삭제 실패",
         description: "POBER 기록 삭제에 실패했습니다.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsDeleting(false)
-      setIsDeleteDialogOpen(false)
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
     }
-  }
+  };
 
   const onAddComment = async (content: string) => {
     try {
@@ -186,7 +179,7 @@ export default function PoberDetailPage({ params }: { params: { id: string } }) 
         },
         body: JSON.stringify({
           content,
-          poberId: params.id,
+          poberId: id,
         }),
       });
 
@@ -200,7 +193,6 @@ export default function PoberDetailPage({ params }: { params: { id: string } }) 
       });
 
       fetchPoberDetail();
-
     } catch (err) {
       console.error("Error deleting POBER:", err);
       toast({
@@ -253,7 +245,7 @@ export default function PoberDetailPage({ params }: { params: { id: string } }) 
 
         <MobileNavigation />
       </div>
-    )
+    );
   }
 
   // 에러 발생 시 에러 메시지 표시
@@ -264,7 +256,9 @@ export default function PoberDetailPage({ params }: { params: { id: string } }) 
 
         <div className="flex-1 p-4 pb-20 flex items-center justify-center">
           <div className="text-center">
-            <p className="text-red-500 mb-4">{error || "Pober를 찾을 수 없습니다"}</p>
+            <p className="text-red-500 mb-4">
+              {error || "Pober를 찾을 수 없습니다"}
+            </p>
             <Button onClick={() => router.push("/")} variant="outline">
               홈으로 돌아가기
             </Button>
@@ -273,182 +267,185 @@ export default function PoberDetailPage({ params }: { params: { id: string } }) 
 
         <MobileNavigation />
       </div>
-    )
+    );
   }
 
   return (
     <div className="flex flex-col w-full min-h-screen max-w-md mx-auto">
       <MobileHeader title="POBER 상세" showBackButton />
 
-      <div className="flex-1 p-4 pb-20">
-        <Card className="mb-4">
-          <CardContent className="p-4">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-start gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage
-                    src={
-                      pober.user.avatar
-                        ? `/${pober.user.avatar}`
-                        : "/placeholder.svg"
+      {pober && (
+        <div className="flex-1 p-4 pb-20">
+          <Card className="mb-4">
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start gap-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage
+                      src={
+                        pober.user.avatar
+                          ? `/${pober.user.avatar}`
+                          : "/placeholder.svg"
+                      }
+                      alt={`${pober.user.name}의 프로필 이미지`}
+                    />
+                    <AvatarFallback>{pober.user.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{pober.user.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {pober.date}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={`h-8 px-2 flex items-center gap-1 ${
+                      isLiked ? "text-red-500 border-red-200" : ""
+                    }`}
+                    onClick={handleLikeToggle}
+                  >
+                    <Heart
+                      className={`h-3.5 w-3.5 ${isLiked ? "fill-red-500" : ""}`}
+                    />
+                    <span>{likeCount}</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-2 flex items-center gap-1"
+                    onClick={() =>
+                      router.push(`/write/edit/${id}?bypass=true`)
                     }
-                    alt={`${pober.user.name}의 프로필 이미지`}
-                  />
-                  <AvatarFallback>{pober.user.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-medium">{pober.user.name}</p>
-                  <p className="text-sm text-muted-foreground">{pober.date}</p>
+                  >
+                    <Edit className="h-3.5 w-3.5" />
+                    <span>수정</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-2 flex items-center gap-1 text-red-500 hover:text-red-600 hover:bg-red-50"
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>삭제</span>
+                  </Button>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className={`h-8 px-2 flex items-center gap-1 ${
-                    isLiked ? "text-red-500 border-red-200" : ""
-                  }`}
-                  onClick={handleLikeToggle}
-                >
-                  <Heart
-                    className={`h-3.5 w-3.5 ${isLiked ? "fill-red-500" : ""}`}
-                  />
-                  <span>{likeCount}</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 px-2 flex items-center gap-1"
-                  onClick={() =>
-                    router.push(`/write/edit/${params.id}?bypass=true`)
-                  }
-                >
-                  <Edit className="h-3.5 w-3.5" />
-                  <span>수정</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 px-2 flex items-center gap-1 text-red-500 hover:text-red-600 hover:bg-red-50"
-                  onClick={() => setIsDeleteDialogOpen(true)}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  <span>삭제</span>
-                </Button>
-              </div>
-            </div>
 
-            {/* 메모(한줄소감) */}
-            {pober.memo && (
-              <div className="mb-4 bg-gradient-to-br from-gray-50 to-slate-50 p-3 rounded-lg border border-gray-100/30 shadow-sm">
-                <div className="flex items-start gap-2">
-                  <div className="bg-gray-100 rounded-full p-1.5 flex-shrink-0">
-                    <Quote className="h-3.5 w-3.5 text-gray-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-gray-600 mb-1">
-                      오늘의 한줄소감
-                    </p>
-                    <p className="text-sm leading-relaxed text-slate-700 italic">
-                      {pober.memo}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-4">
-              {pober.prayer !== undefined && (
-                <div className="bg-gradient-to-br from-purple-50 to-slate-50 p-3 rounded-lg border border-purple-100/30 shadow-sm">
+              {/* 메모(한줄소감) */}
+              {pober.memo && (
+                <div className="mb-4 bg-gradient-to-br from-gray-50 to-slate-50 p-3 rounded-lg border border-gray-100/30 shadow-sm">
                   <div className="flex items-start gap-2">
-                    <div className="bg-purple-100 rounded-full p-1.5 flex-shrink-0">
-                      <Clock className="h-3.5 w-3.5 text-purple-600" />
+                    <div className="bg-gray-100 rounded-full p-1.5 flex-shrink-0">
+                      <Quote className="h-3.5 w-3.5 text-gray-600" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-xs font-medium text-purple-600 mb-1 flex items-center">
-                        기도 <span className="ml-1 text-purple-400">(P)</span>
+                      <p className="text-xs font-medium text-gray-600 mb-1">
+                        오늘의 한줄소감
                       </p>
-                      <p className="text-sm leading-relaxed text-slate-700">
-                        {pober.prayer}분
+                      <p className="text-sm leading-relaxed text-slate-700 italic">
+                        {pober.memo}
                       </p>
                     </div>
                   </div>
                 </div>
               )}
 
-              {pober.obd && (
-                <div className="bg-gradient-to-br from-green-50 to-slate-50 p-3 rounded-lg border border-green-100/30 shadow-sm">
-                  <div className="flex items-start gap-2">
-                    <div className="bg-green-100 rounded-full p-1.5 flex-shrink-0">
-                      <Activity className="h-3.5 w-3.5 text-green-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-medium text-green-600 mb-1 flex items-center">
-                        순종 <span className="ml-1 text-green-400">(O)</span>
-                      </p>
-                      <p className="text-sm leading-relaxed text-slate-700">
-                        {pober.obd}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {pober.exer && (
-                <div className="bg-gradient-to-br from-amber-50 to-slate-50 p-3 rounded-lg border border-amber-100/30 shadow-sm">
-                  <div className="flex items-start gap-2">
-                    <div className="bg-amber-100 rounded-full p-1.5 flex-shrink-0">
-                      <Activity className="h-3.5 w-3.5 text-amber-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-medium text-amber-600 mb-1 flex items-center">
-                        운동 <span className="ml-1 text-amber-400">(E)</span>
-                      </p>
-                      <p className="text-sm leading-relaxed text-slate-700">
-                        {pober.exer}
-                      </p>
+              <div className="space-y-4">
+                {pober.prayer !== undefined && (
+                  <div className="bg-gradient-to-br from-purple-50 to-slate-50 p-3 rounded-lg border border-purple-100/30 shadow-sm">
+                    <div className="flex items-start gap-2">
+                      <div className="bg-purple-100 rounded-full p-1.5 flex-shrink-0">
+                        <Clock className="h-3.5 w-3.5 text-purple-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-purple-600 mb-1 flex items-center">
+                          기도 <span className="ml-1 text-purple-400">(P)</span>
+                        </p>
+                        <p className="text-sm leading-relaxed text-slate-700">
+                          {pober.prayer}분
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {pober.reading && (
-                <div className="bg-gradient-to-br from-pink-50 to-slate-50 p-3 rounded-lg border border-pink-100/30 shadow-sm">
-                  <div className="flex items-start gap-2">
-                    <div className="bg-pink-100 rounded-full p-1.5 flex-shrink-0">
-                      <Users className="h-3.5 w-3.5 text-pink-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-medium text-pink-600 mb-1 flex items-center">
-                        독서 <span className="ml-1 text-pink-400">(R)</span>
-                      </p>
-                      <p className="text-sm leading-relaxed text-slate-700">
-                        {pober.reading}
-                      </p>
+                {pober.obd && (
+                  <div className="bg-gradient-to-br from-green-50 to-slate-50 p-3 rounded-lg border border-green-100/30 shadow-sm">
+                    <div className="flex items-start gap-2">
+                      <div className="bg-green-100 rounded-full p-1.5 flex-shrink-0">
+                        <Activity className="h-3.5 w-3.5 text-green-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-green-600 mb-1 flex items-center">
+                          순종 <span className="ml-1 text-green-400">(O)</span>
+                        </p>
+                        <p className="text-sm leading-relaxed text-slate-700">
+                          {pober.obd}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {pober.media !== undefined && (
-                <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-3 rounded-lg border border-slate-200 shadow-sm">
-                  <div className="flex items-start gap-2">
-                    <div className="bg-slate-200 rounded-full p-1.5 flex-shrink-0">
-                      <MessageSquare className="h-3.5 w-3.5 text-slate-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-medium text-slate-600 mb-1">
-                        미디어 사용 시간
-                      </p>
-                      <p className="text-sm leading-relaxed text-slate-700">
-                        {pober.media}분
-                      </p>
+                {pober.exer && (
+                  <div className="bg-gradient-to-br from-amber-50 to-slate-50 p-3 rounded-lg border border-amber-100/30 shadow-sm">
+                    <div className="flex items-start gap-2">
+                      <div className="bg-amber-100 rounded-full p-1.5 flex-shrink-0">
+                        <Activity className="h-3.5 w-3.5 text-amber-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-amber-600 mb-1 flex items-center">
+                          운동 <span className="ml-1 text-amber-400">(E)</span>
+                        </p>
+                        <p className="text-sm leading-relaxed text-slate-700">
+                          {pober.exer}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* {pober.mediaPic && (
+                {pober.reading && (
+                  <div className="bg-gradient-to-br from-pink-50 to-slate-50 p-3 rounded-lg border border-pink-100/30 shadow-sm">
+                    <div className="flex items-start gap-2">
+                      <div className="bg-pink-100 rounded-full p-1.5 flex-shrink-0">
+                        <Users className="h-3.5 w-3.5 text-pink-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-pink-600 mb-1 flex items-center">
+                          독서 <span className="ml-1 text-pink-400">(R)</span>
+                        </p>
+                        <p className="text-sm leading-relaxed text-slate-700">
+                          {pober.reading}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {pober.media !== undefined && (
+                  <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-3 rounded-lg border border-slate-200 shadow-sm">
+                    <div className="flex items-start gap-2">
+                      <div className="bg-slate-200 rounded-full p-1.5 flex-shrink-0">
+                        <MessageSquare className="h-3.5 w-3.5 text-slate-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-slate-600 mb-1">
+                          미디어 사용 시간
+                        </p>
+                        <p className="text-sm leading-relaxed text-slate-700">
+                          {pober.media}분
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* {pober.mediaPic && (
                 <div>
                   <h3 className="font-medium mb-2">스크린샷/사진</h3>
                   <div className="rounded-lg overflow-hidden">
@@ -461,20 +458,21 @@ export default function PoberDetailPage({ params }: { params: { id: string } }) 
                   </div>
                 </div>
               )} */}
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-        <Separator className="my-4" />
+          <Separator className="my-4" />
 
-        <CommentSection
-          postId={params.id}
-          commentCount={pober.commentCount}
-          comments={pober.comments}
-          onAddComment={onAddComment}
-          fetchPoberDetail={fetchPoberDetail}
-        />
-      </div>
+          <CommentSection
+            postId={id}
+            commentCount={pober.commentCount}
+            comments={pober.comments}
+            onAddComment={onAddComment}
+            fetchPoberDetail={fetchPoberDetail}
+          />
+        </div>
+      )}
 
       <MobileNavigation />
 

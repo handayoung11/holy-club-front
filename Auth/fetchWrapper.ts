@@ -10,11 +10,11 @@ export async function fetchWithAuthRetry(
   if (response.status !== 401) {
     return response;
   }
-
   // 401이면 토큰 갱신 시도
-    const refreshed = await fetch(`${baseUrl}/token/refresh`, {
-        method:"POST"
-    });
+  const refreshed = await fetch(`${baseUrl}/token/refresh`, {
+    credentials: "include",
+    method: "POST",
+  });
     
     
 
@@ -23,12 +23,29 @@ export async function fetchWithAuthRetry(
     return response;
   }
 
+  const body = refreshed.body;
+  if (body === null) {
+    return response;
+  }
+
+  const reader = body.getReader();
+  let result = "";
+  const decoder = new TextDecoder();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    result += decoder.decode(value, { stream: true });
+  }
+
+  localStorage.setItem("token", result);
+
   // accessToken 재설정 필요 시 여기서 해줌
   const retryInit = {
     ...init,
     headers: {
       ...(init?.headers || {}),
-      Authorization: `Bearer ${getAccessToken()}`,
+      Authorization: `Bearer ${result}`,
     },
   };
 
