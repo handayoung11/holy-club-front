@@ -119,7 +119,7 @@ export default function StatsPage() {
           day: dayMap[key as keyof typeof dayMap],
           minutes: value as number,
         });
-      }
+      } 
     }
 
     for (let [key, value] of Object.entries(bibleData.stats)) {

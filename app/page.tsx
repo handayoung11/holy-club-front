@@ -57,24 +57,6 @@ export default function Home() {
     }
   }
 
-  const loginEnd = async () => {
-    try {
-      const response = await fetch(`${baseUrl}/token`, {
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error("로그인에 실패했습니다.");
-      }
-      console.log("loginActive", response);
-    } catch (err) {}
-  };
-
-  useEffect(() => {
-    loginEnd();
-  }, []);
-
-  // 최초 로딩 및 검색 조건 변경 시
   useEffect(() => {
     setCurrentPage(1)
     fetchEntries(1, personQuery, startDate, endDate)

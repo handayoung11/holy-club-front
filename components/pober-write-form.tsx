@@ -65,6 +65,7 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
   const [reading, setReading] = useState("") // 변수명 수정: relationship -> reading
   const [mediaTime, setMediaTime] = useState(0)
   const [mediaImage, setMediaImage] = useState<string | null>(null) // 단일 이미지로 변경
+  const [mediaImageFile, setMediaImageFile] = useState<File | null>(null);
   const [thought, setThought] = useState("")
 
   const [isSelectingBible, setIsSelectingBible] = useState(false)
@@ -238,7 +239,10 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
       // 성경 구절 설정
       if (initialData.bibles) {
         const verses = initialData.bibles.map((value) => {
-          return value.chapter + " " + value.start + "~" + value.end + "장";
+          if (value.start === value.end) {
+            return value.chapter + " " + value.start + "장";
+          }
+          return value.chapter + " " + value.start + "-" + value.end + "장";
         });
         setBibleVerses(verses);
       }
@@ -309,9 +313,10 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
   const handleMediaImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (files && files.length > 0) {
+      setMediaImageFile(files[0]); // 👍 가능하고 안전한 코드
       // 이전 이미지 URL 객체 해제
       if (mediaImage) {
-        URL.revokeObjectURL(mediaImage)
+        URL.revokeObjectURL(mediaImage);
       }
       // 첫 번째 파일만 사용
       const newImage = URL.createObjectURL(files[0])
@@ -353,6 +358,7 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
         // 예시: '창세기 1-3장' 또는 '창세기 1장'
         const match = verse.match(/^(.*?)\s(\d+)(?:-(\d+))?장$/);
         if (match) {
+          console.log("verse", verse);
           const chapter = match[1];
           const start = match[2];
           const end = match[3] || match[2];
@@ -362,10 +368,15 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
         }
       });
 
+
       // 이미지 배열 추가 (mediaImage가 있으면)
-      if (mediaImage) {
-        formData.append("images", mediaImage);
+      if (mediaImage && mediaImageFile) {
+        formData.append("mediaPic", mediaImageFile);
       }
+
+
+      console.log("k, v", mediaImageFile);
+      formData.forEach((v, k) => console.log(k, v));
 
       const token = getTokenFromLocalStorage();
       const headers: Record<string, string> = {}
@@ -390,18 +401,12 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
         })
       }
 
+      console.log("submitResponse", submitResponse);
+
       if (!submitResponse.ok) {
         throw new Error("API 요청 실패")
       }
 
-      const result = await submitResponse.json()
-
-      toast({
-        title: isEditing ? "수정 완료" : "저장 완료",
-        description: isEditing ? "POBER 기록이 수정되었습니다." : "POBER 기록이 저장되었습니다.",
-      })
-
-      // 저장 후 홈으로 이동
       router.push("/")
     } catch (err) {
       console.error("Error submitting POBER:", err)

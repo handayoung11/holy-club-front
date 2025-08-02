@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
-import { baseUrl } from "@/lib/utils"
+import { baseUrl, getTokenFromLocalStorage } from "@/lib/utils"
 
 // 기존 PoberEntry 인터페이스 삭제 후 새로 정의
 interface PoberDetailResponse {
@@ -50,6 +50,7 @@ interface PoberDetailResponse {
 export default function PoberDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { toast } = useToast()
+  const token = getTokenFromLocalStorage();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [pober, setPober] = useState<PoberDetailResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -58,39 +59,57 @@ export default function PoberDetailPage({ params }: { params: { id: string } }) 
   const [isLiked, setIsLiked] = useState(false)
   const [likeCount, setLikeCount] = useState(0)
   const [fetching, setFetching] = useState(false)
+  
+  const [detailImage, setDetailImage] = useState()
+  
+  let isMounted = true;
 
-  useEffect(() => {
-    let isMounted = true;
-    setFetching(true);
+  async function fetchPoberDetail() {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(`${baseUrl}/pober/${params.id}`, {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
 
-    async function fetchPoberDetail() {
-      try {
-        setLoading(true)
-        setError(null)
-        const response = await fetch(`${baseUrl}/pober/${params.id}`)
+      if (!response.ok) {
+        if (response.status === 404)
+          throw new Error("Pober를 찾을 수 없습니다");
+        throw new Error("데이터를 불러오는데 실패했습니다");
+      }
 
-        if (!response.ok) {
-          if (response.status === 404) throw new Error("Pober를 찾을 수 없습니다")
-          throw new Error("데이터를 불러오는데 실패했습니다")
-        }
+      const data = await response.json();
+      if (!isMounted) return;
+      setPober(data);
+      setLikeCount(data.likeCount);
+      setIsLiked(data.liked);
 
-        const data = await response.json()
-        if (!isMounted) return;
-        setPober(data)
-        setLikeCount(data.likeCount)
-        setIsLiked(data.liked)
-      } catch (err) {
-        if (!isMounted) return;
-        setError(err instanceof Error ? err.message : "데이터를 불러오는데 문제가 발생했습니다")
-      } finally {
-        if (isMounted) {
-          setLoading(false)
-          setFetching(false)
-        }
+      // const response = await fetch(`${baseUrl}file/media/${params.mediaPic}`, {
+      //     headers: {
+      //       Authorization: "Bearer " + token,
+      //     },
+      //   });
+    } catch (err) {
+      if (!isMounted) return;
+      setError(
+        err instanceof Error
+          ? err.message
+          : "데이터를 불러오는데 문제가 발생했습니다"
+      );
+    } finally {
+      if (isMounted) {
+        setLoading(false);
+        setFetching(false);
       }
     }
+  }
+  
 
-    fetchPoberDetail()
+  useEffect(() => {
+    setFetching(true);
+    fetchPoberDetail();
     return () => {
       isMounted = false;
       setFetching(false);
@@ -103,9 +122,12 @@ export default function PoberDetailPage({ params }: { params: { id: string } }) 
 
     try {
       const response = await fetch(`${baseUrl}/pober/like/${params.id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      })
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token,
+        },
+      });
       if (!response.ok) throw new Error('좋아요 업데이트 실패')
     } catch (err) {
       setIsLiked((prev) => !prev)
@@ -121,26 +143,26 @@ export default function PoberDetailPage({ params }: { params: { id: string } }) 
   const handleDelete = async () => {
     try {
       setIsDeleting(true)
+      
 
       // API 호출로 데이터 삭제
       const response = await fetch(`${baseUrl}/pober/${params.id}`, {
         method: "DELETE",
-      })
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      });
 
       if (!response.ok) {
         throw new Error("삭제 요청 실패")
       }
 
-      const data = await response.json()
-
-      // 삭제 성공 시 알림 표시
       toast({
         title: "삭제 완료",
         description: "POBER 기록이 삭제되었습니다.",
       })
 
-      // 홈으로 이동
-      router.push("/")
+      router.push("/");
     } catch (err) {
       console.error("Error deleting POBER:", err)
       toast({
@@ -160,6 +182,7 @@ export default function PoberDetailPage({ params }: { params: { id: string } }) 
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: "Bearer " + token,
         },
         body: JSON.stringify({
           content,
@@ -171,13 +194,12 @@ export default function PoberDetailPage({ params }: { params: { id: string } }) 
         throw new Error("삭제 요청 실패");
       }
 
-      const data = await response.json();
-
-      // 삭제 성공 시 알림 표시
       toast({
         title: "댓글 작성 완료",
         description: "POBER 댓글 작성이 완료되었습니다.",
       });
+
+      fetchPoberDetail();
 
     } catch (err) {
       console.error("Error deleting POBER:", err);
@@ -431,7 +453,7 @@ export default function PoberDetailPage({ params }: { params: { id: string } }) 
                   <h3 className="font-medium mb-2">스크린샷/사진</h3>
                   <div className="rounded-lg overflow-hidden">
                     <img
-                      src={`/${pober.mediaPic}`}
+                      src={`${baseUrl}/file/${pober.mediaPic}`}
                       alt="스크린샷/사진"
                       className="w-full object-cover rounded-lg"
                       style={{ maxHeight: "300px" }}
@@ -450,6 +472,7 @@ export default function PoberDetailPage({ params }: { params: { id: string } }) 
           commentCount={pober.commentCount}
           comments={pober.comments}
           onAddComment={onAddComment}
+          fetchPoberDetail={fetchPoberDetail}
         />
       </div>
 

@@ -8,8 +8,9 @@ export function cn(...inputs: ClassValue[]) {
 // export const baseUrl = "http://cuvetechnlogis.ddns.net";
 // export const baseUrl = "http://localhost:8080";
 // export const baseUrl = "https://6035cb8c7fbc.ngrok-free.app";
-export const baseUrl = "https://holy-club-back.onrender.com";
+// export const baseUrl = "https://holy-club-back.onrender.com";
 // export const baseUrl = "http://192.168.45.60:8080";
+export const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -44,7 +45,7 @@ export function getTokenFromLocalStorage(): string | null {
 
 // 로그인 상태를 확인하는 함수
 export function isLoggedIn(): boolean {
-  const token = getTokenFromCookie();
+  const token = getTokenFromLocalStorage();
   return token !== null && token !== '';
 }
 
@@ -54,6 +55,7 @@ export function logout(): void {
   
   // 토큰 쿠키 삭제
   document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+  localStorage.removeItem('token');
   
   // 로그인 페이지로 리다이렉트
   window.location.href = '/login';

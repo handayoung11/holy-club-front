@@ -8,6 +8,7 @@ import { useEffect } from "react";
 export default function LoginPage() {
   
   const loginEnd = async () => {
+
     try {
       const response = await fetch(`${baseUrl}/token`, {
         credentials: "include",
@@ -17,7 +18,40 @@ export default function LoginPage() {
         throw new Error("로그인에 실패했습니다.");
       }
       console.log("loginActive", response);
+      const body = response.body;
+      if (body === null) {
+        return;
+      }
+
+      const reader = body.getReader();
+      let result = "";
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        result += decoder.decode(value, { stream: true });
+      }
+
+      localStorage.setItem("token", result);
+      location.href = "/";
+
     } catch (err) {}
+    
+  
+    // try {
+    //   const response = await fetch(`${baseUrl}/token`, {
+    //     credentials: "include",
+    //   });
+
+    //   if (!response.ok) {
+       
+    //     throw new Error("로그인에 실패했습니다.");
+    //   }
+
+      
+    //   console.log("loginActive", response);
+    // } catch (err) {}
   };
 
 
