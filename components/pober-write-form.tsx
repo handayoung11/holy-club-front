@@ -863,7 +863,7 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
           </div>
         </div>
 
-        <div className="space-y-2">
+        {/* <div className="space-y-2">
           <Label className="text-sm font-medium">미디어 스크린샷</Label>
           <div className="mt-2">
             {mediaImage ? (
@@ -899,7 +899,7 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
               </div>
             )}
           </div>
-        </div>
+        </div> */}
       </CardContent>
       <CardFooter className="px-6 pb-6 pt-0 flex gap-3 bg-transparent">
         <Button variant="outline" className="flex-1 rounded-lg" onClick={handleCancel}>
