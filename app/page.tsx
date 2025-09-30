@@ -135,7 +135,7 @@ export default function Home() {
         )}
         {/* 무한 스크롤 트리거 */}
         <div ref={loadMoreRef}></div>
-        <Link href="/write?bypass=true">
+        <Link href="/write">
           <Button
             className="h-14 w-14 rounded-full fixed bottom-20 right-4 shadow-lg flex items-center justify-center bg-primary hover:bg-primary/90"
             size="icon"

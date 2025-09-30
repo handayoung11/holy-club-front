@@ -312,7 +312,7 @@ export default function PoberDetailPage({ params }: { params: Promise<{ id: stri
                     size="sm"
                     className="h-8 px-2 flex items-center gap-1"
                     onClick={() =>
-                      router.push(`/write/edit/${id}?bypass=true`)
+                      router.push(`/write/edit/${id}`)
                     }
                   >
                     <Edit className="h-3.5 w-3.5" />
