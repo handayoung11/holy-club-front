@@ -445,7 +445,7 @@ export default function PoberDetailPage({ params }: { params: Promise<{ id: stri
                   </div>
                 )}
 
-                {/* {pober.mediaPic && (
+                {pober.mediaPic && (
                 <div>
                   <h3 className="font-medium mb-2">스크린샷/사진</h3>
                   <div className="rounded-lg overflow-hidden">
@@ -457,7 +457,7 @@ export default function PoberDetailPage({ params }: { params: Promise<{ id: stri
                     />
                   </div>
                 </div>
-              )} */}
+              )}
               </div>
             </CardContent>
           </Card>
