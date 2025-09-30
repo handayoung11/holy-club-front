@@ -1,8 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { baseUrl, fetcher } from "@/lib/utils";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { baseUrl } from "@/lib/utils";
 import { useEffect } from "react";
 
 export default function LoginPage() {
