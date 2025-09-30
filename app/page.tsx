@@ -8,7 +8,8 @@ import { MobileNavigation } from "@/components/mobile-navigation"
 import { PoberList, PoberEntry } from "@/components/pober-list"
 import { PlusIcon } from "lucide-react"
 import { SearchBar } from "@/components/search-bar"
-import { baseUrl, getTokenFromLocalStorage, isLoggedIn } from "@/lib/utils"
+import { baseUrl } from "@/lib/utils"
+import { fetchWithAuthRetry } from "@/Auth/fetchWrapper"
 
 export default function Home() {
   const [entries, setEntries] = useState<PoberEntry[]>([])
@@ -41,18 +42,7 @@ export default function Home() {
       params.push(`page=${page}`)
       params.push(`size=5`)
       if (params.length > 0) url += `?${params.join("&")}`
-      let response = await fetch(url)
-      if (isLoggedIn()) {
-        const token = getTokenFromLocalStorage();
-        response = await fetch(url, {
-          headers: {
-            Authorization: "Bearer " + token,
-          },
-        });
-      } else {
-        response = await fetch(url)
-      }
-      // if (!response.ok) throw new Error("데이터를 불러오는데 실패했습니다")
+      let response = await fetchWithAuthRetry(url);
       const data = await response.json()
       // data가 배열이거나, content 필드에 배열이 있거나, entries 필드에 배열이 있을 수 있음
       const resultEntries = Array.isArray(data) ? data : data.content || data.entries || []
