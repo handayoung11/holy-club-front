@@ -36,6 +36,9 @@ export default function LoginPage() {
       location.href = "/";
 
     } catch (err) {}
+    finally {
+      location.href = "/";
+    }
     
   
   };
