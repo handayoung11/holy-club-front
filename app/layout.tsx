@@ -9,7 +9,10 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Holy Club",
   description: "거룩함을 유지하기 위한 웹앱",
-    generator: 'v0.dev'
+    generator: 'v0.dev',
+  icons: {
+    icon: "/favicon.png",
+  },
 }
 
 export default function RootLayout({
