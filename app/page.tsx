@@ -16,7 +16,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
   const [totalEntries, setTotalEntries] = useState(0)
   const [searchType, setSearchType] = useState<"person" | "date">("person")
   const [personQuery, setPersonQuery] = useState("")
@@ -27,11 +26,9 @@ export default function Home() {
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
 
 
-  console.log(entries);
-
   // API 호출 함수
-  const fetchEntries = async (page: number, name?: string, startDate?: string, endDate?: string) => {
-    setLoading(true)
+  const fetchEntries = async (page: number, name?: string, startDate?: string, endDate?: string, loading=true) => {
+    setLoading(loading)
     setError(null)
     try {
       let url = `${baseUrl}/pober`;
@@ -48,7 +45,6 @@ export default function Home() {
       const resultEntries = Array.isArray(data) ? data : data.content || data.entries || []
       setEntries(page > 1 ? (prev) => [...prev, ...resultEntries] : resultEntries)
       setTotalEntries(data.totalElements || data.totalEntries || resultEntries.length)
-      setTotalPages(data.totalPages || 1)
     } catch (e: any) {
       setError(e.message || "알 수 없는 오류")
     } finally {
@@ -66,18 +62,19 @@ export default function Home() {
 
   // 무한 스크롤 (IntersectionObserver)
   useEffect(() => {
-    if (!loadMoreRef.current || loading || pageLoading || currentPage >= totalPages) return
-    const observer = new window.IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
+    if (!loadMoreRef.current || loading || pageLoading ) return
+    const observer = new window.IntersectionObserver((target) => {
+      if (currentPage * 5 > entries.length) return;
+      if (target[0].isIntersecting) {
         setPageLoading(true)
-        fetchEntries(currentPage + 1, personQuery, startDate, endDate)
+        fetchEntries(currentPage + 1, personQuery, startDate, endDate, false)
         setCurrentPage((prev) => prev + 1)
       }
-    }, { threshold: 1.0 })
+    }, { threshold: 1 })
     observer.observe(loadMoreRef.current)
     return () => observer.disconnect()
     // eslint-disable-next-line
-  }, [loadMoreRef.current, loading, pageLoading, currentPage, totalPages])
+  }, [loadMoreRef.current, loading, pageLoading, currentPage])
 
   return (
     <div className="flex flex-col w-full min-h-screen max-w-md mx-auto bg-slate-50">
