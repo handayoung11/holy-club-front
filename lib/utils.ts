@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 // export const baseUrl = "http://cuvetechnlogis.ddns.net";
 // export const baseUrl = "http://localhost:8080";
 // export const baseUrl = "https://6035cb8c7fbc.ngrok-free.app";
-export const baseUrl = "https://holy-club-back.onrender.com";
+export const baseUrl = "https://holy-club-back-production.up.railway.app";
 // export const baseUrl = "http://192.168.45.60:8080";
 // export const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
