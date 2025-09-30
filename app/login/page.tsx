@@ -6,7 +6,7 @@ import { baseUrl, fetcher } from "@/lib/utils";
 
 export default function LoginPage() {
   const kakaoLogin = async () => {
-    window.location.href = baseUrl + "/oauth2/authorization/kakao";
+    window.location.href = baseUrl + `/oauth2/authorization?oauth=kakao&redirect=${window.location.origin}/login/end`;
   };
 
   return (
