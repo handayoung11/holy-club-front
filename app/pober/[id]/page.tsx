@@ -72,11 +72,6 @@ export default function PoberDetailPage({ params }: { params: Promise<{ id: stri
       setError(null);
       const response = await fetchWithAuthRetry(
         `${baseUrl}/pober/${id}`,
-        {
-          headers: {
-            Authorization: "Bearer " + token,
-          },
-        }
       );
 
       if (!response.ok) {
