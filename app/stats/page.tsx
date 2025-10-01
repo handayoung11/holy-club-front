@@ -8,52 +8,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BookOpen, Clock, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { baseUrl, getTokenFromCookie, getTokenFromLocalStorage } from "@/lib/utils";
+import { baseUrl, getTokenFromLocalStorage } from "@/lib/utils";
 import { LoginRequiredStatsDialog } from "@/components/login-required-stat-dialog";
-
-// 샘플 데이터 - 실제 구현 시 API 호출로 대체
-const weeklyBibleData = [
-  { day: "월", chapters: 3, books: ["창세기 1-3장"] },
-  { day: "화", chapters: 2, books: ["창세기 4-5장"] },
-  { day: "수", chapters: 0, books: [] },
-  { day: "목", chapters: 4, books: ["시편 1-4장"] },
-  { day: "금", chapters: 1, books: ["요한복음 3장"] },
-  { day: "토", chapters: 2, books: ["마태복음 5-6장"] },
-  { day: "일", chapters: 0, books: [] },
-]
-
-const weeklyPrayerData = [
-  { day: "월", minutes: 30 },
-  { day: "화", minutes: 15 },
-  { day: "수", minutes: 0 },
-  { day: "목", minutes: 45 },
-  { day: "금", minutes: 20 },
-  { day: "토", minutes: 60 },
-  { day: "일", minutes: 0 },
-]
 
 export default function StatsPage() {
   const [currentWeek, setCurrentWeek] = useState("이번 주");
 
-  const [weeklyBibleData, setWeeklyBibleData] = useState([
-    { day: "월", chapters: 3, books: ["창세기 1-3장"] },
-    { day: "화", chapters: 2, books: ["창세기 4-5장"] },
-    { day: "수", chapters: 0, books: [] },
-    { day: "목", chapters: 4, books: ["시편 1-4장"] },
-    { day: "금", chapters: 1, books: ["요한복음 3장"] },
-    { day: "토", chapters: 2, books: ["마태복음 5-6장"] },
-    { day: "일", chapters: 0, books: [] },
-  ]);
-  const [weeklyPrayerData, setWeeklyPrayerData] = useState([
-    { day: "월", minutes: 30 },
-    { day: "화", minutes: 15 },
-    { day: "수", minutes: 0 },
-    { day: "목", minutes: 45 },
-    { day: "금", minutes: 20 },
-    { day: "토", minutes: 60 },
-    { day: "일", minutes: 0 },
-  ]);
-  ;
+  const [weeklyBibleData, setWeeklyBibleData] = useState<
+  { day: string; chapters: number; books: string[] }[]>
+  ([]);
+
+  const [weeklyPrayerData, setWeeklyPrayerData] = useState<
+  { day: string; minutes: number }[]>
+  ([]);
 
   const totalBibleChapters = weeklyBibleData.reduce(
     (sum, day) => sum + day.chapters,
@@ -104,13 +71,13 @@ export default function StatsPage() {
     const bibleList = [];
 
     const dayMap = {
-      "1": "월",
-      "2": "화",
-      "3": "수",
-      "4": "목",
-      "5": "금",
-      "6": "토",
-      "7": "일",
+      "1": "일",
+      "2": "월",
+      "3": "화",
+      "4": "수",
+      "5": "목",
+      "6": "금",
+      "7": "토",
     };
 
     for (let [key, value] of Object.entries(prayerData.stats)) {
