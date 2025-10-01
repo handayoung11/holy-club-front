@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast"
 import { cn, baseUrl, getTokenFromLocalStorage } from "@/lib/utils"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { fetchWithAuthRetry } from "@/Auth/fetchWrapper"
 
 
 interface BibleData {
@@ -374,8 +375,6 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
         formData.append("mediaPic", mediaImageFile);
       }
 
-
-      console.log("k, v", mediaImageFile);
       formData.forEach((v, k) => console.log(k, v));
 
       const token = getTokenFromLocalStorage();
@@ -387,14 +386,14 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
       let submitResponse
       if (isEditing && initialData?.id) {
         // 수정 API 호출
-        submitResponse = await fetch(`${baseUrl}/pober/${initialData?.id}`, {
+        submitResponse = await fetchWithAuthRetry(`${baseUrl}/pober/${initialData?.id}`, {
           method: "PATCH",
           headers,
           body: formData,
         });
       } else {
         // 등록 API 호출
-        submitResponse = await fetch(`${baseUrl}/pober`, {
+        submitResponse = await fetchWithAuthRetry(`${baseUrl}/pober`, {
           method: "POST",
           headers,
           body: formData,
@@ -404,15 +403,17 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
       console.log("submitResponse", submitResponse);
 
       if (!submitResponse.ok) {
-        throw new Error("API 요청 실패")
+        const msg = await submitResponse.text();
+        console.log(msg);
+        throw new Error(msg || "API 요청 실패")
       }
 
       router.push("/")
-    } catch (err) {
+    } catch (err: Error | any) {
       console.error("Error submitting POBER:", err)
       toast({
         title: "오류 발생",
-        description: "POBER 저장 중 오류가 발생했습니다. 다시 시도해주세요.",
+        description: err.message,
         variant: "destructive",
       })
     } finally {
@@ -553,7 +554,7 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
                   className="h-3.5 w-3.5 mr-1 transition-opacity opacity-0 data-[state=active]:opacity-100"
                   data-state={activeTab === "bible" ? "active" : "inactive"}
                 />
-                <span>B</span>
+                <span>W</span>
               </div>
             </TabsTrigger>
             <TabsTrigger
