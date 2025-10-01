@@ -35,6 +35,7 @@ interface PoberDetailResponse {
     name: string
     avatar: string
   }
+  bibles?: any[]
   date: string
   memo?: string
   prayer?: number
@@ -381,6 +382,26 @@ export default function PoberDetailPage({ params }: { params: Promise<{ id: stri
                         <p className="text-sm leading-relaxed text-slate-700">
                           {pober.obd}
                         </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {pober.bibles && pober.bibles.length > 0 && (
+                  <div className="bg-gradient-to-br from-blue-50 to-slate-50 p-3 rounded-lg border border-blue-100/30 shadow-sm">
+                    <div className="flex items-start gap-2">
+                      <div className="bg-blue-100 rounded-full p-1.5 flex-shrink-0">
+                        <BookMarked className="h-3.5 w-3.5 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-blue-600 mb-1 flex items-center">
+                          말씀 <span className="ml-1 text-blue-400">(B)</span>
+                        </p>
+                        {pober.bibles.map((bible, idx) => (
+                          <p key={idx}>
+                            {bible.chapter} {bible.start}장 ~ {bible.end}장
+                          </p>
+                        ))}
                       </div>
                     </div>
                   </div>
