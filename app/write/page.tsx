@@ -14,7 +14,7 @@ export default function WritePage() {
 
   return (
     <div className="flex flex-col w-full min-h-screen max-w-md mx-auto bg-slate-50">
-      <MobileHeader title="Pober 작성" showBackButton onBack={handleBack} />
+      <MobileHeader title="POWER 작성" showBackButton onBack={handleBack} />
 
       <div className="flex-1 p-4 pb-20">
         <PoberWriteForm />

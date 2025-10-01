@@ -206,7 +206,7 @@ export default function PoberDetailPage({ params }: { params: Promise<{ id: stri
   if (loading) {
     return (
       <div className="flex flex-col w-full min-h-screen max-w-md mx-auto">
-        <MobileHeader title="POBER 상세" showBackButton />
+        <MobileHeader title="POWER 상세" showBackButton />
 
         <div className="flex-1 p-4 pb-20">
           <Card className="mb-4">
@@ -248,7 +248,7 @@ export default function PoberDetailPage({ params }: { params: Promise<{ id: stri
   if (error || !pober) {
     return (
       <div className="flex flex-col w-full min-h-screen max-w-md mx-auto">
-        <MobileHeader title="POBER 상세" showBackButton />
+        <MobileHeader title="POWER 상세" showBackButton />
 
         <div className="flex-1 p-4 pb-20 flex items-center justify-center">
           <div className="text-center">
@@ -268,7 +268,7 @@ export default function PoberDetailPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="flex flex-col w-full min-h-screen max-w-md mx-auto">
-      <MobileHeader title="POBER 상세" showBackButton />
+      <MobileHeader title="POWER 상세" showBackButton />
 
       {pober && (
         <div className="flex-1 p-4 pb-20">
@@ -395,7 +395,7 @@ export default function PoberDetailPage({ params }: { params: Promise<{ id: stri
                       </div>
                       <div className="flex-1">
                         <p className="text-xs font-medium text-blue-600 mb-1 flex items-center">
-                          말씀 <span className="ml-1 text-blue-400">(B)</span>
+                          말씀 <span className="ml-1 text-blue-400">(W)</span>
                         </p>
                         {pober.bibles.map((bible, idx) => (
                           <p key={idx}>

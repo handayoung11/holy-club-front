@@ -60,7 +60,7 @@ export default function EditPoberPage({ params }: { params: { id: string } }) {
 
   return (
     <div className="flex flex-col w-full min-h-screen max-w-md mx-auto bg-slate-50">
-      <MobileHeader title="POBER 수정" showBackButton onBack={handleBack} />
+      <MobileHeader title="POWER 수정" showBackButton onBack={handleBack} />
 
       <div className="flex-1 p-4 pb-20">
         <PoberWriteForm isEditing={true} initialData={poberEntry} />

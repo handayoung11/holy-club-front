@@ -78,7 +78,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col w-full min-h-screen max-w-md mx-auto bg-slate-50">
-      <MobileHeader title="POBER" hasNotification={true} />
+      <MobileHeader title="POWER" hasNotification={true} />
       <div className="flex-1 p-4 pb-20">
         <SearchBar
           className="mb-4"

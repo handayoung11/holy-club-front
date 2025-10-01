@@ -50,7 +50,7 @@ export function PoberList({ entries = [] }: PoberListProps) {
   if (!entries || entries.length === 0) {
     return (
       <div className="p-8 text-center">
-        <p className="text-muted-foreground">해당 날짜에 작성된 POBER가 없습니다.</p>
+        <p className="text-muted-foreground">해당 날짜에 작성된 POWER가 없습니다.</p>
       </div>
     )
   }
@@ -129,7 +129,7 @@ export function PoberList({ entries = [] }: PoberListProps) {
                         </div>
                         <div className="flex-1">
                           <p className="text-xs font-medium text-blue-600 mb-1 flex items-center">
-                            말씀 <span className="ml-1 text-blue-400">(B)</span>
+                            말씀 <span className="ml-1 text-blue-400">(W)</span>
                           </p>
                           <p className="text-sm leading-relaxed line-clamp-2 text-slate-700">
                             {entry.bibles[0].chapter +
