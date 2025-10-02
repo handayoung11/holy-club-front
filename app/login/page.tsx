@@ -1,5 +1,6 @@
 "use client";
 
+import { MobileHeader } from "@/components/mobile-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { baseUrl, fetcher } from "@/lib/utils";
@@ -11,6 +12,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col w-full min-h-screen max-w-md mx-auto bg-slate-50">
+      <MobileHeader title="POWER" hasNotification={true} />
       <div className="flex-1 p-4 flex items-center justify-center">
         <Card className="w-full border-none shadow-sm">
           <CardHeader className="text-center">
