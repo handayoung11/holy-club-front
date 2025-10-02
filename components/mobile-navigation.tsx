@@ -20,7 +20,7 @@ export function MobileNavigation() {
             )}
           >
             <BookOpenIcon className="h-6 w-6" />
-            <span className="text-xs mt-1">Pober</span>
+            <span className="text-xs mt-1">Power</span>
           </Link>
           <Link
             href="/profile"
