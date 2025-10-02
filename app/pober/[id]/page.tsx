@@ -493,7 +493,7 @@ export default function PoberDetailPage({ params }: { params: Promise<{ id: stri
                     <img
                       src={`${baseUrl}/file/${pober.mediaPic}`}
                       alt="스크린샷/사진"
-                      className="w-full object-cover rounded-lg"
+                      className="w-full object-contain rounded-lg"
                       style={{ maxHeight: "300px" }}
                     />
                   </div>
