@@ -8,16 +8,16 @@ export async function fetchWithAuthRetry(
   const headers = new Headers(init.headers || {});
 
   // 로그인 상태이면 토큰 추가
-  if (isLoggedIn()) {
+  const isUser = isLoggedIn();
+  if (isUser) {
     const token = getTokenFromLocalStorage();
     headers.set("Authorization", `Bearer ${token}`);
   }
 
   const response = await fetch(input, { ...init, headers });
 
-  // 401이면 토큰 갱신 시도
-  
-  if (response.status !== 401) {
+  // 401이고 로그인 상태일 경우 토큰 갱신 시도
+  if (!isUser || response.status !== 401) {
     return response;
   }
 
@@ -27,14 +27,7 @@ export async function fetchWithAuthRetry(
     method: "POST",
   });
 
-  if (!refreshed) {
-    // refresh 실패 → 그대로 에러 응답 반환
-    return response;
-  }
-
-
-
-  if (!refreshed) {
+  if (!refreshed.ok) {
     // refresh 실패 → 그대로 에러 응답 반환
     return response;
   }
@@ -54,6 +47,7 @@ export async function fetchWithAuthRetry(
     result += decoder.decode(value, { stream: true });
   }
 
+  
   localStorage.setItem("token", result);
 
   // accessToken 재설정 필요 시 여기서 해줌
