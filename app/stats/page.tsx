@@ -8,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BookOpen, Clock, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { baseUrl, getTokenFromLocalStorage } from "@/lib/utils";
+import { baseUrl, getTokenFromLocalStorage, isLoggedIn } from "@/lib/utils";
 import { LoginRequiredStatsDialog } from "@/components/login-required-stat-dialog";
+import { fetchWithAuthRetry } from "@/Auth/fetchWrapper";
 
 export default function StatsPage() {
   const [currentWeek, setCurrentWeek] = useState("이번주");
@@ -30,19 +31,23 @@ export default function StatsPage() {
     (sum, day) => sum + day.minutes,
     0
   );
+
+  const getThisSunday = () => {
+    const today = new Date();
+    const day = today.getDay(); // 0=일요일, 1=월요일 ... 6=토요일
+    const sunday = new Date(today);
+    sunday.setDate(today.getDate()- day);
+    return sunday;
+  };
+
   const prayerDays = weeklyPrayerData.filter((day) => day.minutes > 0).length;
   const bibleDays = weeklyBibleData.filter((day) => day.chapters > 0).length;
 
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [searchDate, setSearchDate] = useState(getThisSunday());
   const router = useRouter();
   const searchParams = useSearchParams();
   const bypass = searchParams.get("bypass") === "true";
-  const token = getTokenFromLocalStorage();
-
-  // 로그인 상태를 확인하는 함수
-  const isLoggedIn = () => {
-    return token !== null && token !== "";
-  };
 
   interface bibleEntry {
     start: number;
@@ -50,21 +55,23 @@ export default function StatsPage() {
     chapter: string;
   }
 
-  const getDetailData = async () => {
+  const getDetailData = async (startDate: string = "") => {
     let prayerUrl = `${baseUrl}/pober/stat/week/prayer`;
-    const prayerResponse = await fetch(prayerUrl, {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    });
+
+    if (startDate) {
+      const params = `startDate=${startDate}`;
+      prayerUrl += `?${params}`;
+    }
+
+    const prayerResponse = await fetchWithAuthRetry(prayerUrl);
     const prayerData = await prayerResponse.json();
 
     let bibleUrl = `${baseUrl}/pober/stat/week/bible`;
-    const bibleResponse = await fetch(bibleUrl, {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    });
+    if (startDate) {
+      const params = `startDate=${startDate}`;
+      bibleUrl += `?${params}`;
+    }
+    const bibleResponse = await fetchWithAuthRetry(bibleUrl);
     const bibleData = await bibleResponse.json();
 
     const prayerList = [];
@@ -127,10 +134,16 @@ export default function StatsPage() {
     if (!isLoggedIn() && !bypass) {
       setShowLoginDialog(true);
     } else {
-      getDetailData();
+      const date = formatLocalDate(searchDate);
+      if (date === formatLocalDate(getThisSunday())) {
+        setCurrentWeek("이번주");
+      } else {
+        setCurrentWeek(`${date.slice(5)} ~ ${formatLocalDate(new Date(searchDate.getTime() + 6 * 24 * 60 * 60 * 1000)).slice(5)}`);
+      }
+      getDetailData(searchDate ? date : "");
     }
     
-  }, [bypass]);
+  }, [bypass, searchDate]);
 
   const handleCloseDialog = () => {
     setShowLoginDialog(false);
@@ -138,6 +151,21 @@ export default function StatsPage() {
       router.push("/");
     }
   };
+
+  const formatLocalDate = (date: Date) => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+  };
+
+  const moveWeek = (next: boolean) => {
+    if ((next && formatLocalDate(searchDate) === formatLocalDate(getThisSunday()))) {
+      return;
+    }
+    searchDate.setDate(searchDate.getDate() + (next ? 7 : -7));
+    setSearchDate(new Date(searchDate));
+  }
 
   const getBarHeight = (value: number, maxValue: number) => {
     if (maxValue === 0) return 0;
@@ -159,11 +187,11 @@ export default function StatsPage() {
 
       <div className="flex-1 p-3 pb-20">
         <div className="flex justify-between items-center mb-4">
-          <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Button onClick={() => moveWeek(false)} variant="ghost" size="icon" className="h-8 w-8">
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <h2 className="text-base font-medium">{currentWeek}</h2>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Button onClick={() => moveWeek(true)} variant="ghost" size="icon" className="h-8 w-8">
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
