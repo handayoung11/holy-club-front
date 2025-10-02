@@ -39,7 +39,7 @@ interface PoberData {
   exer?: string; // 실제로는 exercise(운동)
   reading?: string; // 실제로는 read(독서)
   media?: number;
-  images?: string[];
+  mediaPic?: string[];
   comments?: number;
 }
 
@@ -66,6 +66,7 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
   const [reading, setReading] = useState("") // 변수명 수정: relationship -> reading
   const [mediaTime, setMediaTime] = useState(0)
   const [mediaImage, setMediaImage] = useState<string | null>(null) // 단일 이미지로 변경
+  const [deleteMediaPic, setDeleteMediaPic] = useState<boolean>(false)
   const [mediaImageFile, setMediaImageFile] = useState<File | null>(null);
   const [thought, setThought] = useState("")
 
@@ -268,9 +269,8 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
         setThought(initialData.memo);
       }
 
-      // 이미지 설정 (첫 번째 이미지만 사용)
-      if (initialData.images && initialData.images.length > 0) {
-        setMediaImage(initialData.images[0])
+      if (initialData.mediaPic) {
+        setMediaImage(`${baseUrl}/file/${initialData.mediaPic}`);
       }
     }
   }, [isEditing, initialData])
@@ -329,6 +329,7 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
     if (mediaImage) {
       URL.revokeObjectURL(mediaImage)
       setMediaImage(null)
+      setDeleteMediaPic(true);
     }
   }
 
@@ -353,6 +354,7 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
       formData.append("exer", exercise || "");
       formData.append("reading", reading || "");
       formData.append("media", String(mediaTime));
+      formData.append("deleteMediaPic", String(deleteMediaPic));
 
       // bibleVerses 배열을 bibles[0].chapter, bibles[0].start, ... 형태로 파싱해서 추가
       bibleVerses.forEach((verse, idx) => {
