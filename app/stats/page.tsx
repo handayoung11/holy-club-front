@@ -12,7 +12,7 @@ import { baseUrl, getTokenFromLocalStorage } from "@/lib/utils";
 import { LoginRequiredStatsDialog } from "@/components/login-required-stat-dialog";
 
 export default function StatsPage() {
-  const [currentWeek, setCurrentWeek] = useState("이번 주");
+  const [currentWeek, setCurrentWeek] = useState("이번주");
 
   const [weeklyBibleData, setWeeklyBibleData] = useState<
   { day: string; chapters: number; books: string[] }[]>
@@ -247,7 +247,7 @@ export default function StatsPage() {
                     </div>
                   ) : (
                     <p className="text-xs text-muted-foreground text-center py-4">
-                      이번 주에 읽은 말씀이 없습니다.
+                      이번주에 읽은 말씀이 없습니다.
                     </p>
                   )}
                 </div>
@@ -304,7 +304,7 @@ export default function StatsPage() {
                     </div>
                   ) : (
                     <p className="text-xs text-muted-foreground text-center py-4">
-                      이번 주에 기록된 기도 시간이 없습니다.
+                      이번주에 기록된 기도 시간이 없습니다.
                     </p>
                   )}
                 </div>
