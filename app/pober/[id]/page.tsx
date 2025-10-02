@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
-import { baseUrl, getTokenFromLocalStorage } from "@/lib/utils"
+import { baseUrl, getTokenFromLocalStorage, isLoggedIn } from "@/lib/utils"
 import { fetchWithAuthRetry } from "@/Auth/fetchWrapper"
 
 // 기존 PoberEntry 인터페이스 삭제 후 새로 정의
@@ -106,7 +106,20 @@ export default function PoberDetailPage({ params }: { params: Promise<{ id: stri
     };
   }, []);
 
+  const loginError = () => {
+      toast({
+        title: "오류 발생",
+        description: "로그인 후 이용해주세요.",
+        variant: "destructive",
+      });
+  }
+
   const handleLikeToggle = async () => {
+    if (!isLoggedIn()) {
+      loginError();
+      return;
+    }
+
     setIsLiked((prev) => !prev);
     setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
 
@@ -312,8 +325,13 @@ export default function PoberDetailPage({ params }: { params: Promise<{ id: stri
                     variant="outline"
                     size="sm"
                     className="h-8 px-2 flex items-center gap-1"
-                    onClick={() =>
-                      router.push(`/write/edit/${id}`)
+                    onClick={() => {
+                        if (!isLoggedIn()) {
+                          loginError();
+                          return;
+                        }
+                        router.push(`/write/edit/${id}`)
+                      }
                     }
                   >
                     <Edit className="h-3.5 w-3.5" />
@@ -323,7 +341,14 @@ export default function PoberDetailPage({ params }: { params: Promise<{ id: stri
                     variant="outline"
                     size="sm"
                     className="h-8 px-2 flex items-center gap-1 text-red-500 hover:text-red-600 hover:bg-red-50"
-                    onClick={() => setIsDeleteDialogOpen(true)}
+                    onClick={() => {
+                      
+                        if (!isLoggedIn()) {
+                          loginError();
+                          return;
+                        }
+                      setIsDeleteDialogOpen(true)
+                    }}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                     <span>삭제</span>
