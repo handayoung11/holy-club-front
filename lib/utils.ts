@@ -50,7 +50,7 @@ export function isLoggedIn(): boolean {
 }
 
 // 로그아웃 함수
-export function logout(): void {
+export function logout(goHome: boolean = true): void {
   if (typeof document === 'undefined') return;
   
   // 토큰 쿠키 삭제
@@ -61,7 +61,7 @@ export function logout(): void {
   localStorage.removeItem('token');
   
   // 로그인 페이지로 리다이렉트
-  window.location.href = '/login';
+  if (goHome) window.location.href = '/login';
 }
 
 // 백엔드 API 호출을 위한 기본 설정

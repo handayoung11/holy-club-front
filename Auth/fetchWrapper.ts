@@ -1,4 +1,4 @@
-import { baseUrl, getTokenFromLocalStorage, isLoggedIn } from "@/lib/utils";
+import { baseUrl, getTokenFromLocalStorage, isLoggedIn, logout } from "@/lib/utils";
 
 // fetchWrapper.ts
 export async function fetchWithAuthRetry(
@@ -29,6 +29,12 @@ export async function fetchWithAuthRetry(
 
   if (!refreshed.ok) {
     // refresh 실패 → 그대로 에러 응답 반환
+    const json = await refreshed.json();
+    console.log('doLogout', json.doLogout);
+    if (json.doLogout) {
+      logout(false);
+      window.location.href = `/?error=true`;
+    }
     return response;
   }
 

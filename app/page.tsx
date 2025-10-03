@@ -10,6 +10,8 @@ import { PlusIcon } from "lucide-react"
 import { SearchBar } from "@/components/search-bar"
 import { baseUrl } from "@/lib/utils"
 import { fetchWithAuthRetry } from "@/Auth/fetchWrapper"
+import { useSearchParams } from "next/navigation"
+import { toast } from "@/hooks/use-toast"
 
 export default function Home() {
   const [entries, setEntries] = useState<PoberEntry[]>([])
@@ -24,6 +26,9 @@ export default function Home() {
   const [searchPerformed, setSearchPerformed] = useState(false)
   const [pageLoading, setPageLoading] = useState(false)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
+  const searchParams = useSearchParams();
+  const errorMsg = searchParams.get("error");
+
 
 
   // API 호출 함수
@@ -52,6 +57,16 @@ export default function Home() {
       setPageLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (errorMsg) {
+      toast({
+        title: "오류 발생",
+        description: "로그아웃되었습니다.",
+        variant: "destructive",
+      });
+    }
+  }, [errorMsg]);
 
   useEffect(() => {
     setCurrentPage(1)
