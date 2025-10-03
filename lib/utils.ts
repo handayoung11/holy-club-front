@@ -54,6 +54,9 @@ export function logout(): void {
   if (typeof document === 'undefined') return;
   
   // 토큰 쿠키 삭제
+  fetch(`${baseUrl}/token`, {
+      method: "DELETE"
+  });
   document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
   localStorage.removeItem('token');
   
