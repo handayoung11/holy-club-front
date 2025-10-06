@@ -68,7 +68,7 @@ export function PoberList({ entries = [] }: PoberListProps) {
                 <div className="flex items-center gap-3 mb-3">
                   <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
                     <AvatarImage
-                      src={entry.user.avatar || "/placeholder.svg"}
+                      src={`${baseUrl}/file/${entry.user.avatar}`}
                       alt={`${entry.user.name}의 프로필 이미지`}
                     />
                     <AvatarFallback>{entry.user.name.charAt(0)}</AvatarFallback>

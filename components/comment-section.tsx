@@ -103,11 +103,7 @@ export function CommentSection({
             <div className="flex items-start gap-2">
               <Avatar className="h-8 w-8">
                 <AvatarImage
-                  src={
-                    comment.user.avatar
-                      ? `/${comment.user.avatar}`
-                      : "/placeholder.svg"
-                  }
+                  src={`${baseUrl}/file/${comment.user.avatar}`}
                   alt={comment.user.name}
                 />
                 <AvatarFallback>{comment.user.name.charAt(0)}</AvatarFallback>

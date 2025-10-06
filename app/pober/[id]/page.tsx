@@ -291,9 +291,7 @@ export default function PoberDetailPage({ params }: { params: Promise<{ id: stri
                   <Avatar className="h-10 w-10">
                     <AvatarImage
                       src={
-                        pober.user.avatar
-                          ? `/${pober.user.avatar}`
-                          : "/placeholder.svg"
+                        `${baseUrl}/file/${pober.user.avatar}`
                       }
                       alt={`${pober.user.name}의 프로필 이미지`}
                     />

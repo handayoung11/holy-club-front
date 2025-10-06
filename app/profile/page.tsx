@@ -10,6 +10,7 @@ import { PoberEntry, PoberList } from "@/components/pober-list"
 import { BarChart3, Settings } from "lucide-react"
 import Link from "next/link"
 import { baseUrl, getTokenFromLocalStorage } from "@/lib/utils"
+import { fetchWithAuthRetry } from "@/Auth/fetchWrapper"
 
 export interface userDataEntry {
   createdAt: string,
@@ -32,11 +33,7 @@ export default function ProfilePage() {
   const getUserData = async () => {
     const token = getTokenFromLocalStorage();
     let url = `${baseUrl}/user/me`;
-    const response = await fetch(url, {
-      headers: {
-        Authorization: "Bearer " + token,
-      },
-    });
+    const response = await fetchWithAuthRetry(url);
 
     const data = await response.json();
     
@@ -44,7 +41,7 @@ export default function ProfilePage() {
     
     
     url = `${baseUrl}/pober?name=${data.nickname}`;
-    const poberResponse = await fetch(url);
+    const poberResponse = await fetchWithAuthRetry(url);
     
     const poberData = await poberResponse.json();
     setUserEntry(poberData);
@@ -66,10 +63,10 @@ export default function ProfilePage() {
               <div className="relative">
                 <Avatar className="h-20 w-20">
                   <AvatarImage
-                    src="/placeholder.svg?height=80&width=80"
+                    src={`${baseUrl}/file/${userData.profile}`}
                     alt="프로필 이미지"
                   />
-                  <AvatarFallback>사용자</AvatarFallback>
+                  <AvatarFallback></AvatarFallback>
                 </Avatar>
               </div>
               <h2 className="mt-3 text-lg font-bold">{userData.nickname}</h2>
