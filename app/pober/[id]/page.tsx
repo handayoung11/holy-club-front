@@ -99,7 +99,6 @@ export default function PoberDetailPage({ params }: { params: Promise<{ id: stri
 
   useEffect(() => {
     setFetching(true);
-    console.log('active')
     fetchPoberDetail();
     return () => {
       setFetching(false);
