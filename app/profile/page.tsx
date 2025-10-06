@@ -9,8 +9,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { PoberEntry, PoberList } from "@/components/pober-list"
 import { BarChart3, Settings } from "lucide-react"
 import Link from "next/link"
-import { baseUrl, getTokenFromLocalStorage } from "@/lib/utils"
+import { baseUrl, getTokenFromLocalStorage, isLoggedIn } from "@/lib/utils"
 import { fetchWithAuthRetry } from "@/Auth/fetchWrapper"
+import { LoginRequiredStatsDialog } from "@/components/login-required-stat-dialog"
+import { useRouter } from "next/navigation"
 
 export interface userDataEntry {
   createdAt: string,
@@ -29,6 +31,8 @@ export default function ProfilePage() {
   });
 
   const [userEntry, setUserEntry] = useState<PoberEntry[]>();
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const router = useRouter();
 
   const getUserData = async () => {
     const token = getTokenFromLocalStorage();
@@ -48,13 +52,28 @@ export default function ProfilePage() {
   }
   
   useEffect(() => {
+    if (!isLoggedIn()) {
+      setShowLoginDialog(true);
+      return;
+    }
     getUserData();
   }, [])
   
+  const handleCloseDialog = () => {
+      setShowLoginDialog(false);
+      if (!isLoggedIn()) {
+        router.push("/");
+      }
+    };
 
   return (
     <div className="flex flex-col w-full min-h-screen max-w-md mx-auto">
       <MobileHeader title="MyPage" />
+
+      <LoginRequiredStatsDialog
+        isOpen={showLoginDialog}
+        onClose={handleCloseDialog}
+      />
 
       <div className="flex-1 p-3 pb-20">
         <Card className="mb-4">

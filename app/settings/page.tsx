@@ -14,7 +14,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { CameraIcon, Bell, LogOut } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { fetchWithAuthRetry } from "@/Auth/fetchWrapper"
-import { baseUrl, logout } from "@/lib/utils"
+import { baseUrl, isLoggedIn, logout } from "@/lib/utils"
+import { LoginRequiredStatsDialog } from "@/components/login-required-stat-dialog"
+import { useRouter } from "next/navigation"
 
 export default function SettingsPage() {
   const [nickname, setNickname] = useState("")
@@ -26,7 +28,9 @@ export default function SettingsPage() {
   const [profileImage, setProfileImage] = useState<string>("")
   const [newProfileImage, setNewProfileImage] = useState("")
   const [newProfileImageFile, setNewProfileImageFile] = useState<File>()
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const router = useRouter();
 
   
   const fetchData = async () => {
@@ -43,6 +47,11 @@ export default function SettingsPage() {
   };
   
   useEffect(() => {
+    if (!isLoggedIn()) {
+      console.log(showLoginDialog)
+      setShowLoginDialog(true);
+      return;
+    }
     fetchData();
   }, [])
 
@@ -130,9 +139,21 @@ export default function SettingsPage() {
     }
   }
 
+  const handleCloseDialog = () => {
+    setShowLoginDialog(false);
+    if (!isLoggedIn()) {
+      router.push("/");
+    }
+  };
+
   return (
     <div className="flex flex-col w-full min-h-screen max-w-md mx-auto">
       <MobileHeader title="설정" />
+
+      <LoginRequiredStatsDialog
+        isOpen={showLoginDialog}
+        onClose={handleCloseDialog}
+      />
 
       <div className="flex-1 p-3 pb-20">
         <Card className="mb-4">
@@ -231,7 +252,7 @@ export default function SettingsPage() {
             <Button
               variant="outline"
               className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 flex items-center justify-center gap-2"
-              onClick={logout}
+              onClick={() => logout()}
             >
               <LogOut className="h-4 w-4" />
               로그아웃
