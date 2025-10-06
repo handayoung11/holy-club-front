@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { MobileHeader } from "@/components/mobile-header"
 import { MobileNavigation } from "@/components/mobile-navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,34 +12,82 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { CameraIcon, Bell, LogOut } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "@/hooks/use-toast"
+import { fetchWithAuthRetry } from "@/Auth/fetchWrapper"
+import { baseUrl, logout } from "@/lib/utils"
 
 export default function SettingsPage() {
-  const [nickname, setNickname] = useState("사용자 이름")
+  const [nickname, setNickname] = useState("")
   const [isEditing, setIsEditing] = useState(false)
-  const [newNickname, setNewNickname] = useState("사용자 이름")
+  const [newNickname, setNewNickname] = useState("")
+  const [regDate, setRegDate] = useState<Date>()
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
   const [darkModeEnabled, setDarkModeEnabled] = useState(false)
-  const [profileImage, setProfileImage] = useState<string>("/placeholder.svg?height=64&width=64")
+  const [profileImage, setProfileImage] = useState<string>("")
+  const [newProfileImage, setNewProfileImage] = useState("")
+  const [newProfileImageFile, setNewProfileImageFile] = useState<File>()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { toast } = useToast()
+
+  
+  const fetchData = async () => {
+    try {
+      const res = await fetchWithAuthRetry(`${baseUrl}/user/me`);
+      const data = await res.json();
+      console.log(data);
+      setNickname(data.nickname || "사용자 이름");
+      setRegDate(new Date(data.createdAt));
+      setProfileImage(`${baseUrl}/file/${data.profile}`);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  
+  useEffect(() => {
+    fetchData();
+  }, [])
+
+  const updateUserData = async() => {
+    console.log(profileImage);
+    try {    
+      const formData = new FormData();
+      formData.append("nickname", newNickname);
+      if (newProfileImage && newProfileImageFile) {
+        formData.append("profileImg", newProfileImageFile);
+      }
+      console.log(formData)
+      const res = await fetchWithAuthRetry(`${baseUrl}/user/me`, {
+        method: "PATCH", 
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error('프로필 수정 실패'); 
+      
+      setNickname(newNickname)
+      setIsEditing(false)
+      toast({
+        title: "프로필 수정 완료",
+        variant: "success",
+      })
+    } catch(err) {
+      console.log(err);
+      toast({
+        title: "프로필 수정 실패",
+        variant: "destructive",
+      })
+    }
+  };
 
   const handleSaveNickname = () => {
     if (newNickname.trim() === "") {
       toast({
         title: "닉네임 오류",
-        description: "닉네임은 비워둘 수 없습니다.",
+        description: "닉네임을 입력해주세요.",
         variant: "destructive",
       })
       return
     }
 
-    setNickname(newNickname)
-    setIsEditing(false)
-    toast({
-      title: "닉네임 변경 완료",
-      description: "닉네임이 성공적으로 변경되었습니다.",
-    })
+    updateUserData();
   }
 
   const handleImageClick = () => {
@@ -74,11 +122,8 @@ export default function SettingsPage() {
       const reader = new FileReader()
       reader.onload = (event) => {
         if (event.target?.result) {
-          setProfileImage(event.target.result as string)
-          toast({
-            title: "프로필 이미지 변경",
-            description: "프로필 이미지가 변경되었습니다.",
-          })
+          setNewProfileImage(event.target.result as string);
+          setNewProfileImageFile(file);
         }
       }
       reader.readAsDataURL(file)
@@ -98,10 +143,10 @@ export default function SettingsPage() {
             <div className="flex items-center gap-3 mb-4">
               <div className="relative">
                 <Avatar className="h-16 w-16">
-                  <AvatarImage src={profileImage || "/placeholder.svg"} alt="프로필 이미지" />
+                  <AvatarImage src={isEditing ? newProfileImage : profileImage} alt="프로필 이미지" />
                   <AvatarFallback>{nickname.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <Button
+               {isEditing ? <Button
                   variant="outline"
                   size="icon"
                   className="absolute bottom-0 right-0 h-6 w-6 rounded-full bg-white shadow-sm"
@@ -116,7 +161,7 @@ export default function SettingsPage() {
                     className="hidden"
                     aria-label="프로필 이미지 업로드"
                   />
-                </Button>
+                </Button> : ""}
               </div>
 
               <div className="flex-1">
@@ -135,25 +180,31 @@ export default function SettingsPage() {
                       <Button size="sm" className="h-8" onClick={handleSaveNickname}>
                         저장
                       </Button>
+                      <Button size="sm" className="h-8" variant="destructive" onClick={() => setIsEditing(false)}>
+                        취소
+                      </Button>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-1">
                     <div className="flex justify-between items-center">
                       <Label className="text-xs text-muted-foreground">닉네임</Label>
-                      <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => setIsEditing(true)}>
+                      <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => {
+                        setNewNickname(nickname)
+                        setNewProfileImage(profileImage);
+                        setIsEditing(true);
+                      }}>
                         변경
                       </Button>
                     </div>
-                    <p className="font-medium">{nickname}</p>
+                    <p className="font-medium">{nickname || 'Loading...'}</p>
                   </div>
                 )}
               </div>
             </div>
 
             <div className="text-xs text-muted-foreground">
-              <p>이메일: user@example.com</p>
-              <p>가입일: 2025년 4월 1일</p>
+              <p>가입일: {regDate && `${regDate?.getFullYear()}년 ${regDate?.getMonth() + 1}월 ${regDate?.getDate()}일`}</p>
             </div>
           </CardContent>
         </Card>
@@ -180,6 +231,7 @@ export default function SettingsPage() {
             <Button
               variant="outline"
               className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 flex items-center justify-center gap-2"
+              onClick={logout}
             >
               <LogOut className="h-4 w-4" />
               로그아웃

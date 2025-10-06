@@ -86,7 +86,7 @@ export default function ProfilePage() {
                     <span>통계</span>
                   </Button>
                 </Link>
-                {/* <Link href="/setting">
+                <Link href="/settings">
                   <Button
                     variant="outline"
                     size="sm"
@@ -95,7 +95,7 @@ export default function ProfilePage() {
                     <Settings className="h-3 w-3" />
                     <span>설정</span>
                   </Button>
-                </Link> */}
+                </Link>
               </div>
             </div>
           </CardContent>
