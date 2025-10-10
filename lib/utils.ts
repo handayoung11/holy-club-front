@@ -15,22 +15,6 @@ export const baseUrl = "https://holy-club-back-production.up.railway.app";
 export const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 // 쿠키에서 토큰을 확인하는 함수
-export function getTokenFromCookie(): string | null {
-  if (typeof document === 'undefined') return null;
-  
-  const cookies = document.cookie.split(';');
-  const tokenCookie = cookies.find(cookie => 
-    cookie.trim().startsWith('token=')
-  );
-  
-  if (tokenCookie) {
-    return tokenCookie.split('=')[1];
-  }
-  
-  return null;
-}
-
-// 쿠키에서 토큰을 확인하는 함수
 export function getTokenFromLocalStorage(): string | null {
   if (typeof document === 'undefined') return null;
   
