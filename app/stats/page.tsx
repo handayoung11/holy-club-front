@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { BookOpen, Clock, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { baseUrl, getTokenFromLocalStorage, isLoggedIn } from "@/lib/utils";
+import { baseUrl, formatDate, getTokenFromLocalStorage, isLoggedIn } from "@/lib/utils";
 import { LoginRequiredStatsDialog } from "@/components/login-required-stat-dialog";
 import { fetchWithAuthRetry } from "@/Auth/fetchWrapper";
 
@@ -134,11 +134,11 @@ export default function StatsPage() {
     if (!isLoggedIn() && !bypass) {
       setShowLoginDialog(true);
     } else {
-      const date = formatLocalDate(searchDate);
-      if (date === formatLocalDate(getThisSunday())) {
+      const date = formatDate(searchDate);
+      if (date === formatDate(getThisSunday())) {
         setCurrentWeek("이번주");
       } else {
-        setCurrentWeek(`${date.slice(5)} ~ ${formatLocalDate(new Date(searchDate.getTime() + 6 * 24 * 60 * 60 * 1000)).slice(5)}`);
+        setCurrentWeek(`${date.slice(5)} ~ ${formatDate(new Date(searchDate.getTime() + 6 * 24 * 60 * 60 * 1000)).slice(5)}`);
       }
       getDetailData(searchDate ? date : "");
     }
@@ -152,15 +152,8 @@ export default function StatsPage() {
     }
   };
 
-  const formatLocalDate = (date: Date) => {
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, "0");
-      const d = String(date.getDate()).padStart(2, "0");
-      return `${y}-${m}-${d}`;
-  };
-
   const moveWeek = (next: boolean) => {
-    if ((next && formatLocalDate(searchDate) === formatLocalDate(getThisSunday()))) {
+    if ((next && formatDate(searchDate) === formatDate(getThisSunday()))) {
       return;
     }
     searchDate.setDate(searchDate.getDate() + (next ? 7 : -7));
