@@ -598,7 +598,7 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
               <div className={cn("p-1.5 rounded-full mr-2", getTabStyles("prayer").iconBg)}>
                 {getTabStyles("prayer").icon}
               </div>
-              <h3 className={cn("font-medium", getTabStyles("prayer").text)}>기도 시간</h3>
+              <h3 className={cn("font-medium", getTabStyles("prayer").text)}>기도(Pray)</h3>
             </div>
             <div className="space-y-2">
               <div className="flex gap-2 mt-1">
@@ -647,7 +647,7 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
               <div className={cn("p-1.5 rounded-full mr-2", getTabStyles("obedience").iconBg)}>
                 {getTabStyles("obedience").icon}
               </div>
-              <h3 className={cn("font-medium", getTabStyles("obedience").text)}>순종 내용</h3>
+              <h3 className={cn("font-medium", getTabStyles("obedience").text)}>순종(Obey)</h3>
             </div>
             <Textarea
               id="obedience"
@@ -674,7 +674,7 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
               <div className={cn("p-1.5 rounded-full mr-2", getTabStyles("bible").iconBg)}>
                 {getTabStyles("bible").icon}
               </div>
-              <h3 className={cn("font-medium", getTabStyles("bible").text)}>성경 말씀</h3>
+              <h3 className={cn("font-medium", getTabStyles("bible").text)}>말씀(Word)</h3>
             </div>
             <div className="space-y-2">
               {bibleVerses.length > 0 ? (
@@ -809,7 +809,7 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
               <div className={cn("p-1.5 rounded-full mr-2", getTabStyles("exercise").iconBg)}>
                 {getTabStyles("exercise").icon}
               </div>
-              <h3 className={cn("font-medium", getTabStyles("exercise").text)}>운동 (Exercise)</h3>
+              <h3 className={cn("font-medium", getTabStyles("exercise").text)}>운동(Exercise)</h3>
             </div>
             <Textarea
               id="exercise"
@@ -836,7 +836,7 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
               <div className={cn("p-1.5 rounded-full mr-2", getTabStyles("reading").iconBg)}>
                 {getTabStyles("reading").icon}
               </div>
-              <h3 className={cn("font-medium", getTabStyles("reading").text)}>독서 (Reading)</h3>
+              <h3 className={cn("font-medium", getTabStyles("reading").text)}>독서(Read)</h3>
             </div>
             <Textarea
               id="reading"
