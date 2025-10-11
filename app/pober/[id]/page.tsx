@@ -476,7 +476,7 @@ export default function PoberDetailPage({ params }: { params: Promise<{ id: stri
                           미디어 사용 시간
                         </p>
                         <p className="text-sm leading-relaxed text-slate-700">
-                          {pober.media}분
+                          {pober.media}시간
                         </p>
                       </div>
                     </div>
