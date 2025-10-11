@@ -57,7 +57,7 @@ export default function SettingsPage() {
 
   const updateUserData = async() => {
     console.log(profileImage);
-    try {    
+    try {
       const formData = new FormData();
       formData.append("nickname", newNickname);
       if (newProfileImage && newProfileImageFile) {
