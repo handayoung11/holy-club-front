@@ -1,3 +1,4 @@
+import { Bible } from "@/components/pober-list";
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -162,3 +163,10 @@ export function formatDateTime(date: Date): string {
   console.log(formatted);
   return formatted;
 }
+
+export const formatBible = (bible: Bible) => {
+  const { chapter, start, end } = bible;
+  return start !== end
+    ? `${chapter} ${start}~${end}장`
+    : `${chapter} ${start}장`;
+};

@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { baseUrl } from "@/lib/utils"
+import { baseUrl, formatBible } from "@/lib/utils"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -132,12 +132,7 @@ export function PoberList({ entries = [] }: PoberListProps) {
                             말씀 <span className="ml-1 text-blue-400">(W)</span>
                           </p>
                           <p className="text-sm leading-relaxed line-clamp-2 text-slate-700">
-                            {entry.bibles[0].chapter +
-                              " " +
-                              entry.bibles[0].start +
-                              "장 ~ " +
-                              entry.bibles[0].end +
-                              "장"}
+                            {formatBible(entry.bibles[0])}
                           </p>
                         </div>
                       </div>
