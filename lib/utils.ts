@@ -145,3 +145,20 @@ export function formatDate(date: Date): string {
     const d = String(date.getDate()).padStart(2, "0");
     return `${y}-${m}-${d}`;
 };
+
+export function formatDateTime(date: Date): string {
+  
+  const year = String(date.getFullYear()).slice(2); // "25"
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // "10"
+  const day = String(date.getDate()).padStart(2, "0"); // "13"
+
+  let hour = date.getHours();
+  const minute = String(date.getMinutes()).padStart(2, "0");
+  const ampm = hour < 12 ? "오전" : "오후";
+  hour = hour % 12 || 12; // 0시는 12시로
+
+  const formatted = `${year}.${month}.${day} ${ampm} ${hour}시 ${minute}분`;
+
+  console.log(formatted);
+  return formatted;
+}
