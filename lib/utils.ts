@@ -153,10 +153,10 @@ export function formatDateTime(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(2, "0"); // "10"
   const day = String(date.getDate()).padStart(2, "0"); // "13"
 
-  let hour = date.getHours();
+  let hour = date.getHours() + 9; // 한국시간으로 변경
   const minute = String(date.getMinutes()).padStart(2, "0");
   const ampm = hour < 12 ? "오전" : "오후";
-  hour = hour % 12 || 12; // 0시는 12시로
+  hour = hour % 12 || 12; 
 
   const formatted = `${year}.${month}.${day} ${ampm} ${hour}시 ${minute}분`;
 
