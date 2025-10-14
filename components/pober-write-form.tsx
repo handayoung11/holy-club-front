@@ -858,7 +858,7 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
               value={[mediaTime]}
               min={0}
               max={24}
-              step={0.5}
+              step={1}
               onValueChange={(value) => setMediaTime(value[0])}
               className="flex-1"
             />
