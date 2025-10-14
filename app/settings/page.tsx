@@ -38,7 +38,6 @@ export default function SettingsPage() {
     try {
       const res = await fetchWithAuthRetry(`${baseUrl}/user/me`);
       const data = await res.json();
-      console.log(data);
       setNickname(data.nickname || "사용자 이름");
       setRegDate(new Date(data.createdAt));
       setProfileImage(`${baseUrl}/file/${data.profile}`);
@@ -49,7 +48,6 @@ export default function SettingsPage() {
   
   useEffect(() => {
     if (!isLoggedIn()) {
-      console.log(showLoginDialog)
       setShowLoginDialog(true);
       return;
     }
@@ -57,7 +55,6 @@ export default function SettingsPage() {
   }, [])
 
   const updateUserData = async() => {
-    console.log(profileImage);
     try {
       const formData = new FormData();
       formData.append("nickname", newNickname);
@@ -66,7 +63,6 @@ export default function SettingsPage() {
       } else if (newProfileImage && newProfileImageFile) {
         formData.append("profileImg", newProfileImageFile);
       }
-      console.log(formData)
       const res = await fetchWithAuthRetry(`${baseUrl}/user/me`, {
         method: "PATCH",
         body: formData,
@@ -116,7 +112,6 @@ export default function SettingsPage() {
   }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('nnn', newProfileImage)
     const file = e.target.files?.[0]
     if (file) {
       // 이미지 파일인지 확인
