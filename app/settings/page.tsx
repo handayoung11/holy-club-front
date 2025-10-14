@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { CameraIcon, Bell, LogOut } from "lucide-react"
+import { CameraIcon, Bell, LogOut, X } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { fetchWithAuthRetry } from "@/Auth/fetchWrapper"
 import { baseUrl, isLoggedIn, logout } from "@/lib/utils"
@@ -28,6 +28,7 @@ export default function SettingsPage() {
   const [profileImage, setProfileImage] = useState<string>("")
   const [newProfileImage, setNewProfileImage] = useState("")
   const [newProfileImageFile, setNewProfileImageFile] = useState<File>()
+  const [deleteProfile, setDeleteProfile] = useState(false)
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter();
@@ -60,23 +61,32 @@ export default function SettingsPage() {
     try {
       const formData = new FormData();
       formData.append("nickname", newNickname);
-      if (newProfileImage && newProfileImageFile) {
+      if (deleteProfile) {
+        formData.append("deleteProfile", "true");
+      } else if (newProfileImage && newProfileImageFile) {
         formData.append("profileImg", newProfileImageFile);
       }
       console.log(formData)
       const res = await fetchWithAuthRetry(`${baseUrl}/user/me`, {
-        method: "PATCH", 
+        method: "PATCH",
         body: formData,
       });
 
-      if (!res.ok) throw new Error('프로필 수정 실패'); 
-      
+      if (!res.ok) throw new Error('프로필 수정 실패');
+
       setNickname(newNickname)
+      if (deleteProfile) {
+        setProfileImage("");
+        setNewProfileImage("");
+        setNewProfileImageFile(undefined);
+      }
+      setDeleteProfile(false)
       setIsEditing(false)
       toast({
         title: "프로필 수정 완료",
         variant: "success",
       })
+      fetchData();
     } catch(err) {
       console.log(err);
       toast({
@@ -106,6 +116,7 @@ export default function SettingsPage() {
   }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('nnn', newProfileImage)
     const file = e.target.files?.[0]
     if (file) {
       // 이미지 파일인지 확인
@@ -136,7 +147,16 @@ export default function SettingsPage() {
         }
       }
       reader.readAsDataURL(file)
+      setDeleteProfile(false)
     }
+  }
+
+  const handleDeleteProfileImage = () => {
+    setDeleteProfile(true)
+    setNewProfileImage("")
+    setNewProfileImageFile(undefined)
+    if (fileInputRef.current)
+      fileInputRef.current.value = "";
   }
 
   const handleCloseDialog = () => {
@@ -164,25 +184,40 @@ export default function SettingsPage() {
             <div className="flex items-center gap-3 mb-4">
               <div className="relative">
                 <Avatar className="h-16 w-16">
-                  <AvatarImage src={isEditing ? newProfileImage : profileImage} alt="프로필 이미지" />
+                  <AvatarImage src={isEditing && !deleteProfile ? newProfileImage : (deleteProfile ? undefined : profileImage)} alt="프로필 이미지" />
                   <AvatarFallback>{nickname.charAt(0)}</AvatarFallback>
                 </Avatar>
-               {isEditing ? <Button
-                  variant="outline"
-                  size="icon"
-                  className="absolute bottom-0 right-0 h-6 w-6 rounded-full bg-white shadow-sm"
-                  onClick={handleImageClick}
-                >
-                  <CameraIcon className="h-3 w-3" />
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleImageChange}
-                    accept="image/*"
-                    className="hidden"
-                    aria-label="프로필 이미지 업로드"
-                  />
-                </Button> : ""}
+               {isEditing && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="absolute bottom-0 right-0 h-6 w-6 rounded-full bg-white shadow-sm"
+                    onClick={handleImageClick}
+                  >
+                    <CameraIcon className="h-3 w-3" />
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImageChange}
+                      accept="image/*"
+                      className="hidden"
+                      aria-label="프로필 이미지 업로드"
+                    />
+                  </Button>
+                  {((profileImage || newProfileImage) && !deleteProfile) && (
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-0 right-0 h-6 w-6 rounded-full shadow-sm"
+                      onClick={handleDeleteProfileImage}
+                      title="프로필 사진 삭제"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  )}
+                </>
+               )}
               </div>
 
               <div className="flex-1">
@@ -201,7 +236,10 @@ export default function SettingsPage() {
                       <Button size="sm" className="h-8" onClick={handleSaveNickname}>
                         저장
                       </Button>
-                      <Button size="sm" className="h-8" variant="destructive" onClick={() => setIsEditing(false)}>
+                      <Button size="sm" className="h-8" variant="destructive" onClick={() => {
+                        setIsEditing(false)
+                        setDeleteProfile(false)
+                      }}>
                         취소
                       </Button>
                     </div>
@@ -213,6 +251,7 @@ export default function SettingsPage() {
                       <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={() => {
                         setNewNickname(nickname)
                         setNewProfileImage(profileImage);
+                        setDeleteProfile(false);
                         setIsEditing(true);
                       }}>
                         변경
