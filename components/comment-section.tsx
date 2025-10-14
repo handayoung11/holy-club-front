@@ -2,7 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { baseUrl, getTokenFromLocalStorage } from "@/lib/utils";
+import { baseUrl, formatDateTime, getTokenFromLocalStorage } from "@/lib/utils";
 import { useState } from "react"
 
 interface User {
@@ -114,7 +114,7 @@ export function CommentSection({
                     {comment.user.name}
                   </span>
                   <span className="text-xs text-gray-400">
-                    {comment.createdAt}
+                    {formatDateTime(new Date(comment.createdAt))}
                   </span>
                 </div>
                 <div className="text-sm text-gray-700 mb-1">

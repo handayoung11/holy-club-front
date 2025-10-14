@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
-import { baseUrl, getTokenFromLocalStorage, isLoggedIn } from "@/lib/utils"
+import { baseUrl, formatBible, getTokenFromLocalStorage, isLoggedIn } from "@/lib/utils"
 import { fetchWithAuthRetry } from "@/Auth/fetchWrapper"
 
 // 기존 PoberEntry 인터페이스 삭제 후 새로 정의
@@ -420,9 +420,7 @@ export default function PoberDetailPage({ params }: { params: Promise<{ id: stri
                           말씀 <span className="ml-1 text-blue-400">(W)</span>
                         </p>
                         {pober.bibles.map((bible, idx) => (
-                          <p key={idx}>
-                            {bible.chapter} {bible.start}장 ~ {bible.end}장
-                          </p>
+                          <p key={idx}>{formatBible(bible)}</p>
                         ))}
                       </div>
                     </div>
@@ -476,7 +474,7 @@ export default function PoberDetailPage({ params }: { params: Promise<{ id: stri
                           미디어 사용 시간
                         </p>
                         <p className="text-sm leading-relaxed text-slate-700">
-                          {pober.media}분
+                          {pober.media}시간
                         </p>
                       </div>
                     </div>

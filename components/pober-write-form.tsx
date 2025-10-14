@@ -13,7 +13,7 @@ import { PlusIcon, TrashIcon, X, Camera, Clock, BookOpen, Activity, BookMarked }
 import { Slider } from "@/components/ui/slider"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
-import { cn, baseUrl, getTokenFromLocalStorage } from "@/lib/utils"
+import { cn, baseUrl, getTokenFromLocalStorage, formatDate } from "@/lib/utils"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { fetchWithAuthRetry } from "@/Auth/fetchWrapper"
@@ -57,7 +57,7 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
   // 기본값 설정
   const yesterday = new Date()
   yesterday.setDate(yesterday.getDate() - 1)
-  const [date, setDate] = useState(yesterday.toISOString().split("T")[0])
+  const [date, setDate] = useState(formatDate(yesterday)) 
   const [prayerHours, setPrayerHours] = useState(1)
   const [prayerMinutes, setPrayerMinutes] = useState(0)
   const [obedience, setObedience] = useState("")
@@ -858,7 +858,7 @@ export function PoberWriteForm({ isEditing = false, initialData }: PoberWriteFor
               value={[mediaTime]}
               min={0}
               max={24}
-              step={0.5}
+              step={1}
               onValueChange={(value) => setMediaTime(value[0])}
               className="flex-1"
             />

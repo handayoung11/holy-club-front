@@ -1,3 +1,4 @@
+import { Bible } from "@/components/pober-list";
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -138,3 +139,34 @@ export async function toggleLike(poberId: number) {
     method: 'POST',
   });
 }
+
+export function formatDate(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+};
+
+export function formatDateTime(date: Date): string {
+  
+  const year = String(date.getFullYear()).slice(2); // "25"
+  const month = String(date.getMonth() + 1).padStart(2, "0"); // "10"
+  const day = String(date.getDate()).padStart(2, "0"); // "13"
+
+  let hour = date.getHours() + 9; // 한국시간으로 변경
+  const minute = String(date.getMinutes()).padStart(2, "0");
+  const ampm = hour < 12 ? "오전" : "오후";
+  hour = hour % 12 || 12; 
+
+  const formatted = `${year}.${month}.${day} ${ampm} ${hour}시 ${minute}분`;
+
+  console.log(formatted);
+  return formatted;
+}
+
+export const formatBible = (bible: Bible) => {
+  const { chapter, start, end } = bible;
+  return start !== end
+    ? `${chapter} ${start}~${end}장`
+    : `${chapter} ${start}장`;
+};

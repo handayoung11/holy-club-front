@@ -85,7 +85,7 @@ export default function ProfilePage() {
                     src={`${baseUrl}/file/${userData.profile}`}
                     alt="프로필 이미지"
                   />
-                  <AvatarFallback></AvatarFallback>
+                  <AvatarFallback className="text-3xl">{userData.nickname.charAt(0)}</AvatarFallback>
                 </Avatar>
               </div>
               <h2 className="mt-3 text-lg font-bold">{userData.nickname}</h2>
